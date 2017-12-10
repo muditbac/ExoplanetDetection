@@ -11,4 +11,4 @@ if __name__ == '__main__':
     skf = StratifiedKFold(n_splits=k_fold, shuffle=False, random_state=random_seed)
 
     folds = list(skf.split(labels, labels))
-    pkl.dump(folds, open(os.path.join(DATASETS_PATH, 'folds.pkl'), 'w'))
+    pkl.dump(folds, open(FOLDS_FILENAME, 'w'))

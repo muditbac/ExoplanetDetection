@@ -1,7 +1,8 @@
 import numpy as np
-from config import FEATURES_PATH, DATASETS_PATH
+from config import FEATURES_PATH, DATASETS_PATH, FOLDS_FILENAME
 import os
 from sklearn.base import BaseEstimator, TransformerMixin
+import pickle as pkl
 
 identity = lambda x: x
 
@@ -43,6 +44,17 @@ def generate_dataset(struct, dataset_name):
     target_values.dump(os.path.join(DATASETS_PATH, '%s_y.npy' % dataset_name))
 
 
+def load_dataset(dataset_name):
+    """
+    Loads the dataset from the dataset folds given the dataset name
+    :param dataset_name
+    :return: dataset_X, dataset_y
+    """
+    X = np.load(os.path.join(DATASETS_PATH, '%s_X.npy' % dataset_name))
+    y = np.load(os.path.join(DATASETS_PATH, '%s_y.npy' % dataset_name))
+    return X, y
+
+
 def save_features(data, features_name):
     """
     Save the features in the features folder
@@ -56,5 +68,9 @@ def save_features(data, features_name):
     data.dump(FEATURES_PATH + features_name + '.npy')
 
 
-def save_dataset(data, dataset):
-    pass
+def load_folds():
+    """
+    Loads the k-folds split of the dataset for cross-validation
+    :return: list of (train_split, test_split)
+    """
+    return pkl.load(open(FOLDS_FILENAME, 'r'))

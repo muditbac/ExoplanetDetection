@@ -9,5 +9,6 @@ FEATURES_PATH = 'features/'
 RESULTS_PATH = 'results/'
 
 k_fold = 5
+FOLDS_FILENAME = DATASETS_PATH + 'folds.pkl'
 
 random_seed = 2017
