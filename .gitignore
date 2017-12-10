@@ -104,3 +104,4 @@ features/*
 .idea/*
 data/*
 datasets/*
+results/*
