@@ -4,8 +4,9 @@ if __name__ == '__main__':
     struct = {
         'features': [
             ('raw_mean_std_normalized', SimpleTransform()),
+            ('raw_mean_std_normalized_smoothed', SimpleTransform()),
         ],
         'target': ('labels', SimpleTransform())
     }
 
-    generate_dataset(struct, 'raw_normalized_dataset')
+    generate_dataset(struct, 'raw_normalized_smoothed_dataset')

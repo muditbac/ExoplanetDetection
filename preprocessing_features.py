@@ -1,5 +1,7 @@
-import pandas as pd
 import os
+
+import pandas as pd
+from scipy.ndimage.filters import uniform_filter1d
 
 from config import *
 from utils.processing_helper import save_features
@@ -31,8 +33,9 @@ if __name__ == '__main__':
 
     print("Preprocessing data...")
     x, y = preprocess_data(dataset)
+    x_smoothed = uniform_filter1d(x, axis=1, size=200)
 
     print("Dumping features...")
-
     save_features(x, 'raw_mean_std_normalized')
+    save_features(x_smoothed, 'raw_mean_std_normalized_smoothed')
     y.dump(os.path.join(FEATURES_PATH, 'labels.npy'))
