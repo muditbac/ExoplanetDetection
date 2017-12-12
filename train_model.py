@@ -13,21 +13,37 @@ from utils.python_io import start_logging
 np.set_printoptions(precision=3)
 
 
+def get_metrics(y_true, y_pred, threshold):
+    """
+    Computes the necessary metrics with probability threshold
+    :return: confusion_matrix, precision, recall, f1_score, true_skill_score
+    """
+    cm = confusion_matrix(y_true, y_pred > threshold)
+    skill_score = np.linalg.det(cm) / np.prod(np.sum(cm, axis=1))
+    prec, recall, f1_score, _ = precision_recall_fscore_support(y_true, y_pred > threshold)
+    return cm, prec[1], recall[1], f1_score[1], skill_score
+
+
 def analyze_results(y_true, y_pred):
     """
     Prints the analysis of the predicted results
     :param y_true: True values
     :param y_pred: Predicted values
+    :param print_auc: If True, prints the AUC Score
     """
-    print "Overall AUC", roc_auc_score(y_true, y_pred), "\n"
-    print "{:>15s} {:>15s} {:>15s} {:>15s} {:>15s}" \
-        .format("Threshold", "Precision", "Recall", "F1-Score", "Skill Score")
-    for threshold in np.linspace(0, 1, 21):
-        cm = confusion_matrix(y_true, y_pred > threshold)
-        skill_score = np.linalg.det(cm) / np.prod(np.sum(cm, axis=1))
-        prec, recall, f1_score, _ = precision_recall_fscore_support(y_true, y_pred > threshold)
-        print "{:13.4f}   {:13.4f}   {:13.4f}   {:13.4f}   {:13.4f}" \
-            .format(threshold, prec[1], recall[1], f1_score[1], skill_score)
+    print "{:s} - {:8.4f}".format('AUC', roc_auc_score(y_true, y_pred)), "\n"
+    formatter = "{:15.4f} {:15.4f} {:15.4f} {:15.4f} {:15.4f} {:10d} {:10d} {:10d} {:10d}"
+
+    results = [(threshold, get_metrics(y_true, y_pred, threshold)) for threshold in np.linspace(0, 1, 1001)]
+    max_f1_score_threshold = max(results, key=lambda x: x[1][3])[0]
+    max_true_skill_threshold = max(results, key=lambda x: x[1][4])[0]
+
+    print "{:>15s} {:>15s} {:>15s} {:>15s} {:>15s} {:>10s} {:>10s} {:>10s} {:>10s}" \
+        .format("Threshold", "Precision", "Recall", "F1-Score", "Skill Score", "FP", "FN", "TP", "TN")
+    for threshold in [max_f1_score_threshold, max_true_skill_threshold, 0.25, 0.5, 0.75]:
+        cm, prec, recall, f1_score, skill_score = get_metrics(y_true, y_pred, threshold)
+        print formatter.format(threshold, prec, recall, f1_score, skill_score, cm[0, 1], cm[1, 0], cm[1, 1],
+                               cm[0, 0])
     print
 
 
@@ -54,12 +70,14 @@ def summarize_model(model_name, dataset_name):
         # Copying the values to generate predictions of complete dataset
         y_complete_pred[val_index] = y_pred
 
-        print "[Fold %d]: " % (i + 1),
-        print "AUC: %5.4f" % roc_auc_score(y_val, y_pred)
+        print "[Fold %d]: " % (i + 1)
+        print "Fold Summary: ",
+        analyze_results(y_val, y_pred)
+        print
 
     y_complete_pred.dump(os.path.join(RESULTS_PATH, '%s_%s.npy' % (dataset_name, model_name)))
 
-    print
+    print "Complete Summary: ",
     analyze_results(y, y_complete_pred)
     print "\nModel parameters: "
     pprint.pprint(model.get_params(), indent=4, depth=1)
