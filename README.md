@@ -9,3 +9,4 @@ Inter IIT Event 2017
 - xgboost
 - keras
 - mlextend
+- imblearn

@@ -18,7 +18,7 @@ from keras.models import Sequential
 from keras.optimizers import Adam
 from keras.wrappers.scikit_learn import KerasClassifier
 
-input_shape = [3197, 2]
+input_shape = [3197, 1]
 
 
 class KerasBatchClassifier(KerasClassifier):
@@ -117,4 +117,4 @@ def create_model():
     return model
 
 
-model = KerasBatchClassifier(build_fn=create_model, epochs=40, batch_size=32, verbose=1)
+model = KerasBatchClassifier(build_fn=create_model, epochs=40, batch_size=32, verbose=2)
