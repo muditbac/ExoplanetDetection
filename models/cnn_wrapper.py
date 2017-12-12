@@ -1,7 +1,16 @@
 import copy
+import random
 import types
 
 import numpy as np
+import tensorflow as tf
+
+from config import random_seed
+
+np.random.seed(random_seed)
+random.seed(random_seed)
+tf.set_random_seed(random_seed)
+
 from keras.layers import Conv1D, MaxPool1D, Dense, Dropout, Flatten, \
     BatchNormalization
 from keras.layers import Reshape
@@ -47,7 +56,7 @@ class KerasBatchClassifier(KerasClassifier):
 
         self.__history = self.model.fit_generator(
             self.batch_generator(X, y, batch_size=self.sk_params["batch_size"]),
-            steps_per_epoch=X.shape[0] // 32,
+            steps_per_epoch=2*X.shape[0] // self.sk_params["batch_size"],
             **fit_args)
 
         return self.__history
@@ -108,5 +117,4 @@ def create_model():
     return model
 
 
-model = KerasBatchClassifier(build_fn=create_model, epochs=80, batch_size=32, verbose=1)
-
+model = KerasBatchClassifier(build_fn=create_model, epochs=40, batch_size=32, verbose=1)

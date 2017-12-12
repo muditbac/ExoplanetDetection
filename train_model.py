@@ -3,10 +3,12 @@ import os
 import pprint
 
 import numpy as np
+from datetime import datetime
 from sklearn.metrics import confusion_matrix, roc_auc_score, precision_recall_fscore_support
 
 from config import RESULTS_PATH
 from utils.processing_helper import load_dataset, load_folds
+from utils.python_io import start_logging
 
 np.set_printoptions(precision=3)
 
@@ -18,13 +20,13 @@ def analyze_results(y_true, y_pred):
     :param y_pred: Predicted values
     """
     print "Overall AUC", roc_auc_score(y_true, y_pred), "\n"
-    print "{:>15s} {:>15s} {:>15s} {:>15s} {:>15s}"\
+    print "{:>15s} {:>15s} {:>15s} {:>15s} {:>15s}" \
         .format("Threshold", "Precision", "Recall", "F1-Score", "Skill Score")
     for threshold in np.linspace(0, 1, 21):
         cm = confusion_matrix(y_true, y_pred > threshold)
         skill_score = np.linalg.det(cm) / np.prod(np.sum(cm, axis=1))
         prec, recall, f1_score, _ = precision_recall_fscore_support(y_true, y_pred > threshold)
-        print "{:13.4f}   {:13.4f}   {:13.4f}   {:13.4f}   {:13.4f}"\
+        print "{:13.4f}   {:13.4f}   {:13.4f}   {:13.4f}   {:13.4f}" \
             .format(threshold, prec[1], recall[1], f1_score[1], skill_score)
     print
 
@@ -69,5 +71,9 @@ if __name__ == '__main__':
     parser.add_argument('dataset', type=str, help="The dataset to process")
     parser.add_argument('model', type=str, help="name of the py")
     args = parser.parse_args()
+
+    # Log the output to file also
+    current_timestring = datetime.now().strftime("%Y%m%d%H%M%S")
+    start_logging(os.path.join(RESULTS_PATH, '%s_%s_%s.txt' % (current_timestring, args.dataset, args.model)))
 
     summarize_model(args.model, args.dataset)
