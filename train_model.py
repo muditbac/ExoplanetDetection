@@ -8,7 +8,7 @@ from sklearn.metrics import confusion_matrix, roc_auc_score, precision_recall_fs
 
 from config import RESULTS_PATH
 from utils.processing_helper import load_dataset, load_folds
-from utils.python_io import start_logging
+from utils.python_utils import start_logging
 
 np.set_printoptions(precision=3)
 
@@ -29,7 +29,7 @@ def analyze_results(y_true, y_pred):
     Prints the analysis of the predicted results
     :param y_true: True values
     :param y_pred: Predicted values
-    :param print_auc: If True, prints the AUC Score
+    :return: returns the list of metrics for different threshold in (threshold, metrics) format
     """
     print "{:s} - {:8.4f}".format('AUC', roc_auc_score(y_true, y_pred)), "\n"
     formatter = "{:15.4f} {:15.4f} {:15.4f} {:15.4f} {:15.4f} {:10d} {:10d} {:10d} {:10d}"
@@ -45,6 +45,8 @@ def analyze_results(y_true, y_pred):
         print formatter.format(threshold, prec, recall, f1_score, skill_score, cm[0, 1], cm[1, 0], cm[1, 1],
                                cm[0, 0])
     print
+
+    return results
 
 
 def summarize_model(model_name, dataset_name):

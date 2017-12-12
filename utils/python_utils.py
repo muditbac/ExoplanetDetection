@@ -1,5 +1,8 @@
 import sys
 
+from hyperopt.pyll import scope
+from hyperopt.pyll_utils import validate_label
+
 
 class Logger(object):
     """
@@ -30,3 +33,16 @@ def stop_logging():
     """Stop logger and return print functionality to normal"""
     sys.stdout.logfile.close()
     sys.stdout = sys.stdout.terminal
+
+
+def print_dict(data_dict, print_format=" - {:.<30}: {}"):
+    assert isinstance(data_dict, dict)
+    for key, value in data_dict.iteritems():
+        print print_format.format(key, value)
+
+
+@validate_label
+def quniform_int(label, *args, **kwargs):
+    return scope.int(
+        scope.hyperopt_param(label,
+                             scope.quniform(*args, **kwargs)))
