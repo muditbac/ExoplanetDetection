@@ -1,5 +1,6 @@
 import argparse
 import os
+import pickle as pkl
 from datetime import datetime
 
 from hyperopt import STATUS_OK, Trials, fmin, tpe
@@ -11,7 +12,7 @@ from utils.processing_helper import load_dataset, load_folds
 from utils.python_utils import start_logging, print_dict
 
 
-def tune_model(model_name, dataset_name, n_trials):
+def tune_model(model_name, dataset_name, n_trials, args):
     module_file = __import__("models.%s" % model_name, globals(), locals(), ['model', 'params_space'])
     model = module_file.model
     params_space = module_file.params_space
@@ -24,7 +25,7 @@ def tune_model(model_name, dataset_name, n_trials):
         print_dict(params)
 
         model.set_params(**params)
-        y_pred = cross_val_predict(model, X, y, cv=folds, method='predict_proba', verbose=2, n_jobs=2)
+        y_pred = cross_val_predict(model, X, y, cv=folds, method='predict_proba', verbose=2, n_jobs=args['n_jobs'])
         results = analyze_results(y, y_pred[:, 1])
         max_f1_score = max(results, key=lambda x: x[1][3])[1][3]
         return {'loss': -max_f1_score, 'status': STATUS_OK}
@@ -39,6 +40,11 @@ def tune_model(model_name, dataset_name, n_trials):
     best_params['z_score'] = -trials.best_trial['result']['loss']
     print "\n\nBest Parameters..."
     print_dict(best_params)
+
+# Save the trails
+    trials_file_path = os.path.join(RESULTS_PATH, "%s_%s_tuning_trials.pkl" % (model_name, dataset_name))
+    pkl.dump(trials, open(trials_file_path, 'wb'))
+
     return best_params
 
 
@@ -48,10 +54,13 @@ if __name__ == '__main__':
     parser.add_argument('model', type=str, help="name of the python file")
     parser.add_argument('--trials', '-t', type=int, default=3, help="Number of trials to choose the perform the "
                                                                     "validation")
+    parser.add_argument('--n_jobs', '-n', type=int, default=1, help="Number of threads to run in parallel for cross validation")
     args = parser.parse_args()
 
     # Log the output to file also
     current_timestring = datetime.now().strftime("%Y%m%d%H%M%S")
     start_logging(os.path.join(RESULTS_PATH, 'tune_%s_%s_%s.txt' % (current_timestring, args.dataset, args.model)))
 
-    tune_model(args.model, args.dataset, n_trials=args.trials)
+    tune_model(args.model, args.dataset, n_trials=args.trials, args={
+            'n_jobs': args.n_jobs
+        })
