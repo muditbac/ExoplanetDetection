@@ -16,6 +16,7 @@ def generate_time_series(x, y, name='time_series'):
     final_features = []
     functions = []
 
+    params = [{"coeff": i, "k": 100} for i in range(100)]
     functions.append(mean)
     functions.append(median)
     functions.append(length)
@@ -29,6 +30,7 @@ def generate_time_series(x, y, name='time_series'):
     functions.append(mean_change)
     functions.append(has_duplicate)
     functions.append(sample_entropy)
+    functions.append(ar_coefficient)
     functions.append(mean_abs_change)
     functions.append(count_below_mean)
     functions.append(count_above_mean)
@@ -50,18 +52,28 @@ def generate_time_series(x, y, name='time_series'):
     functions.append(percentage_of_reoccurring_datapoints_to_all_datapoints)
 
     for f in functions:
-        sys.stdout.write('\r')
-        sys.stdout.write('Generating feature: {}'.format(f.func_name))
+        sys.stdout.write('\nGenerating feature: {}\n'.format(f.func_name))
         new_feature = []
+        size = x.shape[0]
         for k in xrange(x.shape[0]):
-            z = f(x[k, :])
+            sys.stdout.write('\r')
+            percentage = 1. * (k+1) / size
+            progress = int(percentage * 20)
+            bar_arg = [progress*'=', ' '*(19-progress), percentage*100]
+            sys.stdout.write('[{}>{}]{:.0f}%'.format(*bar_arg))
+            sys.stdout.flush()
+            if f.func_name == "ar_coefficient":
+                z = f(x[k, :], params)
+                z = z[1]
+                z = z.squeeze()
+            else:
+                z = f(x[k, :])
             new_feature.append(z)
         final_features.append(new_feature)
-        sys.stdout.flush()
     sys.stdout.write('\nDone...\nDumping features...\n')
     final_features = np.array(final_features).T
     save_features(final_features, 'time_series')
-    print 'Final features shape: '.format(final_features.shape)
+    print 'Final features shape: {}'.format(final_features.shape)
 
 def preprocess_data(raw_data):
     """
