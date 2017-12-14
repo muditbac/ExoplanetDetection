@@ -10,17 +10,19 @@ from sklearn.preprocessing import MinMaxScaler
 
 from utils.processing_helper import save_features
 
+
 def get_spectrum(X):
-    '''
+    """
     Returns the spectrum of the given time series
-    '''
+    """
     spectrum = scipy.fft(X)
     return np.abs(spectrum)
 
+
 def generate_fft_features(raw_dataset, sigma=10):
-    '''
+    """
     Generates the FFT features of the detrended series from the dataset
-    '''
+    """
     data = raw_dataset.values[:, 1:]
     smooth_data = gaussian_filter(data, sigma=sigma)
     difference = data - smooth_data
@@ -28,9 +30,10 @@ def generate_fft_features(raw_dataset, sigma=10):
     difference = np.transpose(difference)
     difference_normalized = scaler.fit_transform(difference)
     difference_normalized = np.transpose(difference_normalized)
-    fft_normalized = get_spectrum(difference_normalized)
-    half_length = (data.shape[1]+1) // 2
-    return fft_normalized[:, :half_length]
+    fft_abs = get_spectrum(difference_normalized)
+    half_length = (data.shape[1] + 1) // 2
+    return fft_abs[:, :half_length]
+
 
 def preprocess_data(raw_data):
     """
@@ -72,8 +75,8 @@ if __name__ == '__main__':
 
     print " - Generating and Saving FFT Features"
     fft_normalized = generate_fft_features(dataset, sigma=10)
-    save_features(fft_normalized,'fft_smoothed_sigma10')
+    save_features(fft_normalized, 'fft_smoothed_sigma10')
     fft_normalized = generate_fft_features(dataset, sigma=20)
-    save_features(fft_normalized,'fft_smoothed_sigma20')
+    save_features(fft_normalized, 'fft_smoothed_sigma20')
 
     y.dump(os.path.join(FEATURES_PATH, 'labels.npy'))

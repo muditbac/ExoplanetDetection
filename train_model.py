@@ -4,7 +4,7 @@ import pprint
 
 import numpy as np
 from datetime import datetime
-from sklearn.metrics import confusion_matrix, roc_auc_score, precision_recall_fscore_support
+from sklearn.metrics import confusion_matrix, roc_auc_score, precision_recall_fscore_support, average_precision_score
 
 from config import RESULTS_PATH
 from utils.processing_helper import load_dataset, load_folds
@@ -31,7 +31,8 @@ def analyze_results(y_true, y_pred):
     :param y_pred: Predicted values
     :return: returns the list of metrics for different threshold in (threshold, metrics) format
     """
-    print "{:s} - {:8.4f}".format('AUC', roc_auc_score(y_true, y_pred)), "\n"
+    print "{:s} - {:8.4f}".format('AUC', roc_auc_score(y_true, y_pred)),
+    print "\t\t{:s} - {:8.4f}".format('AUPRC', average_precision_score(y_true, y_pred)), "\n"
     formatter = "{:15.4f} {:15.4f} {:15.4f} {:15.4f} {:15.4f} {:10d} {:10d} {:10d} {:10d}"
 
     results = [(threshold, get_metrics(y_true, y_pred, threshold)) for threshold in np.linspace(0, 1, 1001)]
