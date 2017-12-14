@@ -4,6 +4,9 @@ import types
 
 import numpy as np
 import tensorflow as tf
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.layers import LSTM
 
 from config import random_seed
 
@@ -18,7 +21,6 @@ from keras.models import Sequential
 from keras.optimizers import Adam
 from keras.wrappers.scikit_learn import KerasClassifier
 
-from hyperopt import hp
 
 input_shape = [3197, 1]
 
@@ -29,7 +31,6 @@ class KerasBatchClassifier(KerasClassifier):
     """
 
     def fit(self, X, y, **kwargs):
-        self.classes_ = set(y)
         if len(y.shape) == 1:
             y = y.reshape(-1, 1)
 
@@ -95,35 +96,19 @@ class KerasBatchClassifier(KerasClassifier):
     def history(self):
         return self.__history
 
-
-def create_model(dropout1=0.5, dropout2=0.25, lr=50e-5):
+def create_model():
     model = Sequential()
-    model.add(Reshape(input_shape, input_shape=(np.prod(input_shape),)))
-    model.add(Conv1D(filters=8, kernel_size=11, activation='relu'))
-    model.add(MaxPool1D(strides=4))
-    model.add(BatchNormalization())
-    model.add(Conv1D(filters=16, kernel_size=11, activation='relu'))
-    model.add(MaxPool1D(strides=4))
-    model.add(BatchNormalization())
-    model.add(Conv1D(filters=32, kernel_size=11, activation='relu'))
-    model.add(MaxPool1D(strides=4))
-    model.add(BatchNormalization())
-    model.add(Conv1D(filters=64, kernel_size=11, activation='relu'))
-    model.add(MaxPool1D(strides=4))
+    model.add(Reshape(input_shape, input_shape=[np.prod(input_shape),]))
+    model.add(LSTM(units = 20, return_sequences=True))
+    model.add(Dropout(0.2))
+    model.add(LSTM(units = 20, return_sequences=True))
+    model.add(Dropout(0.2))
+    model.add(LSTM(units = 20, return_sequences=True))
+    model.add(Dropout(0.2))
     model.add(Flatten())
-    model.add(Dropout(dropout1))
-    model.add(Dense(64, activation='relu'))
-    model.add(Dropout(dropout2))
-    model.add(Dense(64, activation='relu'))
-    model.add(Dense(1, activation='sigmoid'))
-    model.compile(optimizer=Adam(lr, decay=2e-4), loss='binary_crossentropy', metrics=['accuracy'])
+    model.add(Dense(1))
+    model.compile(optimizer=Adam(50e-5, decay=2e-4), loss='mean_squared_error')
     return model
 
+model = KerasBatchClassifier(build_fn=create_model, epochs=20, batch_size=32, verbose=1)
 
-model = KerasBatchClassifier(build_fn=create_model, epochs=40, batch_size=32, verbose=2)
-
-params_space = {
-    'lr': hp.loguniform('lr', -10, -4),
-    'dropout1': hp.quniform('dropout1', 0.25, .75, 0.25),
-    'dropout2': hp.quniform('dropout2', 0.25, .75, 0.25),
-}
