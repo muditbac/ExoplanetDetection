@@ -1,3 +1,5 @@
+import os
+import pickle as pkl
 import sys
 
 from hyperopt.pyll import scope
@@ -46,3 +48,15 @@ def quniform_int(label, *args, **kwargs):
     return scope.int(
         scope.hyperopt_param(label,
                              scope.quniform(*args, **kwargs)))
+
+
+def read_pickle_if_exists(filename):
+    """
+    Returns pickle if exists otherwise returns None
+    :param filename: filename that contains pickle
+    """
+    if os.path.exists(filename):
+        return pkl.load(open(filename, 'rb'))
+    else:
+        return None
+

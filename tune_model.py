@@ -9,13 +9,14 @@ from sklearn.model_selection import cross_val_predict
 from config import RESULTS_PATH
 from train_model import analyze_results
 from utils.processing_helper import load_dataset, load_folds
-from utils.python_utils import start_logging, print_dict
+from utils.python_utils import start_logging, print_dict, read_pickle_if_exists
 
 
 def tune_model(model_name, dataset_name, n_trials, args):
     module_file = __import__("models.%s" % model_name, globals(), locals(), ['model', 'params_space'])
     model = module_file.model
     params_space = module_file.params_space
+    trials_file_path = os.path.join(RESULTS_PATH, "%s_%s_tuning_trials.pkl" % (model_name, dataset_name))
 
     X, y = load_dataset(dataset_name)
     folds = load_folds()
@@ -30,7 +31,7 @@ def tune_model(model_name, dataset_name, n_trials, args):
         max_f1_score = max(results, key=lambda x: x[1][3])[1][3]
         return {'loss': -max_f1_score, 'status': STATUS_OK}
 
-    trials = Trials()
+    trials = read_pickle_if_exists(trials_file_path) or Trials()
     best_params = fmin(fn=objective_fn,
                        space=params_space,
                        algo=tpe.suggest,
@@ -41,8 +42,7 @@ def tune_model(model_name, dataset_name, n_trials, args):
     print "\n\nBest Parameters..."
     print_dict(best_params)
 
-# Save the trails
-    trials_file_path = os.path.join(RESULTS_PATH, "%s_%s_tuning_trials.pkl" % (model_name, dataset_name))
+    # Save the trials
     pkl.dump(trials, open(trials_file_path, 'wb'))
 
     return best_params
@@ -54,7 +54,8 @@ if __name__ == '__main__':
     parser.add_argument('model', type=str, help="name of the python file")
     parser.add_argument('--trials', '-t', type=int, default=3, help="Number of trials to choose the perform the "
                                                                     "validation")
-    parser.add_argument('--n_jobs', '-n', type=int, default=1, help="Number of threads to run in parallel for cross validation")
+    parser.add_argument('--n_jobs', '-n', type=int, default=1, help="Number of threads to run in parallel for cross "
+                                                                    "validation")
     args = parser.parse_args()
 
     # Log the output to file also
@@ -64,3 +65,4 @@ if __name__ == '__main__':
     tune_model(args.model, args.dataset, n_trials=args.trials, args={
             'n_jobs': args.n_jobs
         })
+
