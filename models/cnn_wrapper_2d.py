@@ -18,6 +18,8 @@ from keras.models import Sequential
 from keras.optimizers import Adam
 from keras.wrappers.scikit_learn import KerasClassifier
 
+from hyperopt import hp
+
 input_shape = [3197, 2]
 
 
@@ -27,6 +29,7 @@ class KerasBatchClassifier(KerasClassifier):
     """
 
     def fit(self, X, y, **kwargs):
+        self.classes_ = set(y)
         if len(y.shape) == 1:
             y = y.reshape(-1, 1)
 
@@ -93,7 +96,7 @@ class KerasBatchClassifier(KerasClassifier):
         return self.__history
 
 
-def create_model():
+def create_model(learning_rate=50e-5, dropout_1=0.5, dropout_2=0.25):
     model = Sequential()
     model.add(Reshape(input_shape, input_shape=(np.prod(input_shape),)))
     model.add(Conv1D(filters=8, kernel_size=11, activation='relu'))
@@ -108,13 +111,19 @@ def create_model():
     model.add(Conv1D(filters=64, kernel_size=11, activation='relu'))
     model.add(MaxPool1D(strides=4))
     model.add(Flatten())
-    model.add(Dropout(0.5))
+    model.add(Dropout(dropout_1))
     model.add(Dense(64, activation='relu'))
-    model.add(Dropout(0.25))
+    model.add(Dropout(dropout_2))
     model.add(Dense(64, activation='relu'))
     model.add(Dense(1, activation='sigmoid'))
-    model.compile(optimizer=Adam(50e-5, decay=2e-4), loss='binary_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer=Adam(learning_rate, decay=4e-4), loss='binary_crossentropy', metrics=['accuracy'])
     return model
 
 
-model = KerasBatchClassifier(build_fn=create_model, epochs=40, batch_size=32, verbose=2)
+model = KerasBatchClassifier(build_fn=create_model, epochs=40, batch_size=32, verbose=2, learning_rate=0.005442950, dropout_1=0.5, dropout_2=0.5)
+
+params_space = {
+    'learning_rate': hp.loguniform('learning_rate', -10, -4),
+    'dropout_1': hp.quniform('dropout_1', 0.25, .75, 0.25),
+    'dropout_2': hp.quniform('dropout_2', 0.25, .75, 0.25),
+}
