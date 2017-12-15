@@ -19,19 +19,29 @@ def get_spectrum(X):
     return np.abs(spectrum)
 
 
-def generate_fft_features(raw_dataset, sigma=10):
+def detrend_data(raw_dataset, sigma=10):
     """
-    Generates the FFT features of the detrended series from the dataset
+    Removes the trend from the time series using gaussian smoothing
+    :param raw_dataset:
+    :param sigma:
+    :return:
     """
     data = raw_dataset.values[:, 1:]
     smooth_data = gaussian_filter(data, sigma=sigma)
     difference = data - smooth_data
+    return difference
+
+
+def generate_fft_features(raw_signals):
+    """
+    Generates the FFT features of the detrended series from the dataset
+    """
     scaler = MinMaxScaler()
-    difference = np.transpose(difference)
+    difference = np.transpose(raw_signals)
     difference_normalized = scaler.fit_transform(difference)
     difference_normalized = np.transpose(difference_normalized)
     fft_abs = get_spectrum(difference_normalized)
-    half_length = (data.shape[1] + 1) // 2
+    half_length = (difference.shape[1] + 1) // 2
     return fft_abs[:, :half_length]
 
 
@@ -66,17 +76,28 @@ if __name__ == '__main__':
 
     print(" - Smoothing features")
     x_smoothed_uniform = uniform_filter1d(x, axis=1, size=200)
-    x_smoothed_gaussian = gaussian_filter(x, sigma=20)
+    x_smoothed_gaussian = gaussian_filter(x, sigma=50)
 
     print(" - Saving calculated features")
     save_features(x, 'raw_mean_std_normalized')
     save_features(x_smoothed_uniform, 'raw_mean_std_normalized_smoothed_uniform200')
-    save_features(x_smoothed_gaussian, 'raw_mean_std_normalized_smoothed_gaussian20')
+    save_features(x_smoothed_gaussian, 'raw_mean_std_normalized_smoothed_gaussian50')
+
+    print(" - Detrending data")
+    x_detrend_sigma15 = detrend_data(dataset, sigma=15)
+    x_detrend_sigma10 = detrend_data(dataset, sigma=10)
+    x_detrend_sigma5 = detrend_data(dataset, sigma=5)
+    save_features(x_detrend_sigma15, 'detrend_gaussian15')
+    save_features(x_detrend_sigma10, 'detrend_gaussian10')
+    save_features(x_detrend_sigma5, 'detrend_gaussian5')
 
     print " - Generating and Saving FFT Features"
-    fft_normalized = generate_fft_features(dataset, sigma=10)
-    save_features(fft_normalized, 'fft_smoothed_sigma10')
-    fft_normalized = generate_fft_features(dataset, sigma=20)
-    save_features(fft_normalized, 'fft_smoothed_sigma20')
+    fft_normalized_15 = generate_fft_features(x_detrend_sigma15)
+    fft_normalized_10 = generate_fft_features(x_detrend_sigma10)
+    fft_normalized_5 = generate_fft_features(x_detrend_sigma5)
+
+    save_features(fft_normalized_15, 'fft_smoothed_sigma15')
+    save_features(fft_normalized_10, 'fft_smoothed_sigma10')
+    save_features(fft_normalized_5, 'fft_smoothed_sigma5')
 
     y.dump(os.path.join(FEATURES_PATH, 'labels.npy'))
