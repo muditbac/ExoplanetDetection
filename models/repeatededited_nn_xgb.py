@@ -1,24 +1,21 @@
 import numpy as np
 import xgboost as xgb
 from hyperopt import hp
-from sklearn.manifold import LocallyLinearEmbedding
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.pipeline import Pipeline
+from sklearn.decomposition import PCA
+from imblearn.pipeline import Pipeline
+from imblearn.under_sampling import RepeatedEditedNearestNeighbours
 
 from config import random_seed
 from utils.python_utils import quniform_int
 
 steps = [
-    ('lle', LocallyLinearEmbedding(n_components=55, n_jobs=4,  random_state=random_seed)),
-    ('knn', KNeighborsClassifier(n_neighbors=10, n_jobs=4)),
-    ('xgb', xgb.XGBClassifier(n_estimators=5900, max_depth=11, min_child_weight=4, subsample=0.932626370862, gamma=0.7, colsample_bytree=0.85, learning_rate=0.125, silent=True, nthread=3, seed=random_seed))
-
+    ('undersampler', RepeatedEditedNearestNeighbours(random_state = random_seed)),
+    ('xgb', xgb.XGBClassifier(n_estimators=1000, silent=True, nthread=3, seed=random_seed))
 ]
+
 model = Pipeline(steps=steps)
 
 params_space = {
-    'lle__n_components': quniform_int('n_components', 10, 250, 5),
-    'knn__n_neighbors': quniform_int('n_neighbors', 1, 25, 1),
     'xgb__max_depth': quniform_int('max_depth', 10, 30, 1),
     'xgb__min_child_weight': hp.quniform('min_child_weight', 1, 20, 1),
     'xgb__subsample': hp.uniform('subsample', 0.8, 1),
