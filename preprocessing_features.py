@@ -9,7 +9,7 @@ from scipy.ndimage.filters import uniform_filter1d
 from sklearn.preprocessing import MinMaxScaler
 
 from utils.processing_helper import save_features
-
+from pywt import dwt
 
 def get_spectrum(X):
     """
@@ -99,5 +99,10 @@ if __name__ == '__main__':
     save_features(fft_normalized_15, 'fft_smoothed_sigma15')
     save_features(fft_normalized_10, 'fft_smoothed_sigma10')
     save_features(fft_normalized_5, 'fft_smoothed_sigma5')
+
+    print ' - Processing Wavelet Features'
+    wavelet_db2_a, wavelet_db2_b = dwt(x, 'db2')
+    save_features(wavelet_db2_a, 'wavelet_db2_a')
+    save_features(wavelet_db2_b, 'wavelet_db2_b')
 
     y.dump(os.path.join(FEATURES_PATH, 'labels.npy'))

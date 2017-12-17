@@ -64,8 +64,23 @@ def save_features(data, features_name):
     if not isinstance(data, np.ndarray):
         data = data.values
     if len(data.shape) == 1:
-        data.reshape(-1, 1)
-    data.dump(FEATURES_PATH + features_name + '.npy')
+        data = data.reshape(-1, 1)
+    data.dump(os.path.join(FEATURES_PATH, features_name + '.npy'))
+
+
+def features_exists(feature_name):
+    """
+    Checks if feature/s exists with given name
+    """
+    return os.path.exists(os.path.join(FEATURES_PATH, feature_name + '.npy'))
+
+
+def make_dir_if_not_exists(dir_name):
+    """
+    Makes directory if does not exists
+    """
+    if not os.path.exists(dir_name):
+        os.makedirs(dir_name)
 
 
 def load_folds():

@@ -10,3 +10,4 @@ Inter IIT Event 2017
 - keras
 - mlextend
 - imblearn
+- PyWavelets
