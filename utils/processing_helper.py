@@ -18,14 +18,15 @@ class SimpleTransform(BaseEstimator, TransformerMixin):
         return self.transformer(X)
 
 
-def generate_dataset(struct, dataset_name):
+def generate_dataset(struct, dataset_name, is_test=False):
     """
     Generate the dataset from list of features and target variable
     :param struct: dict containing information of features and target variable
     :param dataset_name: name of the dataset
     """
     features = struct['features']
-    target_feature_name, target_transformer = struct['target']
+    if not is_test:
+        target_feature_name, target_transformer = struct['target']
 
     # Processing features
     features_numpy = []
@@ -38,10 +39,11 @@ def generate_dataset(struct, dataset_name):
     dataset = np.hstack(features_numpy)
     dataset.dump(os.path.join(DATASETS_PATH, '%s_X.npy' % dataset_name))
 
-    # Processing the target variable
-    target_values = np.load(os.path.join(FEATURES_PATH, '%s.npy' % target_feature_name))
-    target_values = target_transformer.fit_transform(target_values)
-    target_values.dump(os.path.join(DATASETS_PATH, '%s_y.npy' % dataset_name))
+    if not is_test:
+        # Processing the target variable
+        target_values = np.load(os.path.join(FEATURES_PATH, '%s.npy' % target_feature_name))
+        target_values = target_transformer.fit_transform(target_values)
+        target_values.dump(os.path.join(DATASETS_PATH, '%s_y.npy' % dataset_name))
 
 
 def load_dataset(dataset_name):
@@ -53,6 +55,13 @@ def load_dataset(dataset_name):
     X = np.load(os.path.join(DATASETS_PATH, '%s_X.npy' % dataset_name))
     y = np.load(os.path.join(DATASETS_PATH, '%s_y.npy' % dataset_name))
     return X, y
+
+
+def load_testdata(dataset_name):
+    """
+    Loads test dataset
+    """
+    return np.load(os.path.join(DATASETS_PATH, '{}_test_X.npy'.format(dataset_name)))
 
 
 def save_features(data, features_name):
