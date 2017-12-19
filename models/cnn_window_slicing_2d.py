@@ -13,7 +13,6 @@ tf.set_random_seed(random_seed)
 
 from keras.layers import Conv1D, MaxPool1D, Dense, Dropout, Flatten, \
     BatchNormalization
-from keras.layers import Reshape
 from keras.models import Sequential
 from keras.optimizers import Adam
 from keras.wrappers.scikit_learn import KerasClassifier
@@ -22,7 +21,7 @@ from hyperopt import hp
 
 org_input_len = 3197
 input_shape = [org_input_len, 2]
-new_input_len = 1500
+new_input_len = 2500
 new_input_shape = [new_input_len, 2]
 max_slice_start_idx = org_input_len - new_input_len
 
@@ -68,12 +67,10 @@ class KerasBatchClassifier(KerasClassifier):
         return self.__history
 
     def predict_proba(self, X, **kwargs):
-        X_new = np.empty((X.shape[0], new_input_len*2))
-        for i in range(X.shape[0]):
-            temp_data = np.reshape(X[i], input_shape)
-            rand_start_idx = np.random.randint(max_slice_start_idx)
-            X_new[i] = np.reshape(temp_data[rand_start_idx:rand_start_idx+new_input_len, :], (-1, new_input_len*2))
-        return self.model.predict_proba(X_new)
+        mid_cut = max_slice_start_idx//2
+        X = X.reshape([-1] + input_shape)
+        X = X[:, mid_cut:mid_cut+new_input_len]
+        return super(KerasBatchClassifier, self).predict_proba(X, **kwargs)
 
     @staticmethod
     def batch_generator(x_train, y_train, batch_size=32):
@@ -84,7 +81,7 @@ class KerasBatchClassifier(KerasClassifier):
         x_batch = np.empty((batch_size, x_train.shape[1]), dtype='float32')
         y_batch = np.empty((batch_size, y_train.shape[1]), dtype='float32')
 
-        x_batch_new = np.empty((batch_size, new_input_len*2))
+        x_batch_new = np.empty([batch_size]+new_input_shape)
 
         yes_idx = np.where(y_train[:, 0] == 1.)[0]
         non_idx = np.where(y_train[:, 0] == 0.)[0]
@@ -101,7 +98,7 @@ class KerasBatchClassifier(KerasClassifier):
             for i in range(batch_size):
                 temp_data = np.reshape(x_batch[i], input_shape)
                 rand_start_idx = np.random.randint(max_slice_start_idx)
-                x_batch_new[i] = np.reshape(temp_data[rand_start_idx:rand_start_idx+new_input_len, :], (-1, new_input_len*2))
+                x_batch_new[i] = temp_data[rand_start_idx:rand_start_idx+new_input_len, :]
 
             yield x_batch_new, y_batch
 
@@ -112,8 +109,7 @@ class KerasBatchClassifier(KerasClassifier):
 
 def create_model(learning_rate=50e-5, dropout_1=0.5, dropout_2=0.25):
     model = Sequential()
-    model.add(Reshape(new_input_shape, input_shape=(np.prod(new_input_shape),)))
-    model.add(Conv1D(filters=8, kernel_size=11, activation='relu'))
+    model.add(Conv1D(filters=8, kernel_size=11, activation='relu', input_shape=new_input_shape))
     model.add(MaxPool1D(strides=4))
     model.add(BatchNormalization())
     model.add(Conv1D(filters=16, kernel_size=11, activation='relu'))

@@ -1,5 +1,6 @@
+import cPickle
 import numpy as np
-from config import FEATURES_PATH, DATASETS_PATH, FOLDS_FILENAME
+from config import FEATURES_PATH, DATASETS_PATH, FOLDS_FILENAME, MODELFILE_PATH
 import os
 from sklearn.base import BaseEstimator, TransformerMixin
 import pickle as pkl
@@ -18,14 +19,14 @@ class SimpleTransform(BaseEstimator, TransformerMixin):
         return self.transformer(X)
 
 
-def generate_dataset(struct, dataset_name):
+def generate_dataset(struct, dataset_name, is_test=False):
     """
     Generate the dataset from list of features and target variable
     :param struct: dict containing information of features and target variable
     :param dataset_name: name of the dataset
+    :param is_test: if True then target values are not required in struct
     """
     features = struct['features']
-    target_feature_name, target_transformer = struct['target']
 
     # Processing features
     features_numpy = []
@@ -36,12 +37,17 @@ def generate_dataset(struct, dataset_name):
         features_numpy.append(x_all)
 
     dataset = np.hstack(features_numpy)
-    dataset.dump(os.path.join(DATASETS_PATH, '%s_X.npy' % dataset_name))
 
-    # Processing the target variable
-    target_values = np.load(os.path.join(FEATURES_PATH, '%s.npy' % target_feature_name))
-    target_values = target_transformer.fit_transform(target_values)
-    target_values.dump(os.path.join(DATASETS_PATH, '%s_y.npy' % dataset_name))
+    dataset_name = os.path.join(DATASETS_PATH, '%s_X.npy' % dataset_name)
+    make_dir_if_not_exists(os.path.dirname(dataset_name))
+    dataset.dump(dataset_name)
+
+    if not is_test:
+        target_feature_name, target_transformer = struct['target']
+        # Processing the target variable
+        target_values = np.load(os.path.join(FEATURES_PATH, '%s.npy' % target_feature_name))
+        target_values = target_transformer.fit_transform(target_values)
+        target_values.dump(os.path.join(DATASETS_PATH, '%s_y.npy' % dataset_name))
 
 
 def load_dataset(dataset_name):
@@ -55,6 +61,35 @@ def load_dataset(dataset_name):
     return X, y
 
 
+def load_testdata(dataset_name):
+    """
+    Loads test dataset
+    """
+    return np.load(os.path.join(DATASETS_PATH, 'test/%s_X.npy' % dataset_name))
+
+
+def save_model(model, model_filename):
+    """
+    Saves the model
+    :param model: model object
+    :param model_filename: File name of the model
+    """
+    print 'Saving the model...'
+    model_filename = os.path.join(MODELFILE_PATH, '%s.model' % model_filename)
+    make_dir_if_not_exists(os.path.dirname(model_filename))
+    with open(model_filename, 'wb') as fp:
+        cPickle.dump(model, fp)
+
+
+def load_model(model_file_name):
+    """
+    Loads a model
+    :param model_file_name: Name of the model to load
+    """
+    with open(os.path.join(MODELFILE_PATH, model_file_name), 'rb') as fp:
+        return cPickle.load(fp)
+
+
 def save_features(data, features_name):
     """
     Save the features in the features folder
@@ -65,7 +100,10 @@ def save_features(data, features_name):
         data = data.values
     if len(data.shape) == 1:
         data = data.reshape(-1, 1)
-    data.dump(os.path.join(FEATURES_PATH, features_name + '.npy'))
+
+    feature_filename = os.path.join(FEATURES_PATH, '%s.npy' % features_name)
+    make_dir_if_not_exists(os.path.dirname(feature_filename))
+    data.dump(feature_filename)
 
 
 def features_exists(feature_name):

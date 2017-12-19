@@ -110,6 +110,7 @@ def generate_time_series_feats(x_dataset, dataset_name="raw"):
     # TODO Add corr features
 
 if __name__ == '__main__':
+    # TODO Add test file code
     dataset = pd.read_csv(raw_data_filename)
 
     print('Extracting time series features...')
