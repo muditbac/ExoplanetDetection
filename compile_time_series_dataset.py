@@ -24,4 +24,4 @@ if __name__ == '__main__':
         ],
         'target': ('labels', SimpleTransform())
     }
-    generate_dataset(struct, 'fft_smoothed10_dataset')
+    generate_dataset(struct, 'fft_smoothed10_ar100_dataset')
