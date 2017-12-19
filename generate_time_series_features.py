@@ -11,12 +11,13 @@ from tsfresh.feature_extraction.feature_calculators import number_peaks, minimum
     partial_autocorrelation, spkt_welch_density
 import pandas as pd
 import os
+import argparse
 
-from config import raw_data_filename, FEATURES_PATH
+from config import raw_data_filename, FEATURES_PATH, testing_filename
 from utils.processing_helper import save_features, make_dir_if_not_exists, features_exists
 
 
-def generate_time_series_feats(x_dataset, dataset_name="raw"):
+def generate_time_series_feats(x_dataset, dataset_name="raw", test=False):
     make_dir_if_not_exists(os.path.join(FEATURES_PATH, 'tsfeats'))
     time_length = x_dataset.shape[1]
 
@@ -62,9 +63,9 @@ def generate_time_series_feats(x_dataset, dataset_name="raw"):
     for feature_name, function_call in features_function_dict.iteritems():
         print "{:.<70s}".format("- Processing feature: %s" % feature_name),
         feature_name = 'tsfeats/%s_%s' % (dataset_name, feature_name)
-        if not features_exists(feature_name):
+        if not features_exists(feature_name, test):
             feats = x_dataset.apply(function_call, axis=1, raw=True).values
-            save_features(feats, feature_name)
+            save_features(feats, feature_name, test)
             print("Done")
         else:
             print("Already generated")
@@ -98,10 +99,10 @@ def generate_time_series_feats(x_dataset, dataset_name="raw"):
     for feature_name, function_call in other_feats_dict.iteritems():
         print "{:.<70s}".format("- Processing features: %s" % feature_name),
         feature_name = 'tsfeats/%s_%s' % (dataset_name, feature_name)
-        if not features_exists(feature_name):
+        if not features_exists(feature_name, test):
             feats_dict = x_dataset.apply(function_call, axis=1, raw=True).values.tolist()
             feats = pd.DataFrame.from_dict(feats_dict)
-            save_features(feats.values, feature_name)
+            save_features(feats.values, feature_name, test)
             print("Done")
         else:
             print("Already generated")
@@ -110,9 +111,15 @@ def generate_time_series_feats(x_dataset, dataset_name="raw"):
     # TODO Add corr features
 
 if __name__ == '__main__':
-    # TODO Add test file code
-    dataset = pd.read_csv(raw_data_filename)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--test', help="Generate test features if this is set", action='store_true')
+    args = parser.parse_args()
+
+    if args.test:
+        dataset = pd.read_csv(testing_filename)
+    else:
+        dataset = pd.read_csv(raw_data_filename)
 
     print('Extracting time series features...')
     x_dataset = dataset.iloc[:, 1:]
-    generate_time_series_feats(x_dataset)
+    generate_time_series_feats(x_dataset, test=args.test)
