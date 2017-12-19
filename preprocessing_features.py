@@ -7,6 +7,7 @@ import argparse
 from config import *
 from scipy.ndimage.filters import gaussian_filter
 from scipy.ndimage.filters import uniform_filter1d
+from scipy.signal import medfilt 
 from sklearn.preprocessing import MinMaxScaler
 
 from utils.processing_helper import save_features
@@ -34,6 +35,13 @@ def detrend_data(raw_dataset, sigma=10):
     smooth_data = gaussian_filter(data, sigma=sigma)
     difference = data - smooth_data
     return difference
+
+
+def detrend_data_median(raw_dataset, kernel_size=81):
+    data = raw_dataset.iloc[:, 1:]
+    smooth_data = data.apply(medfilt, axis=1, kernel_size=kernel_size)
+    difference = data - smooth_data
+    return difference.values
 
 
 def generate_fft_features(raw_signals):
@@ -110,14 +118,21 @@ if __name__ == '__main__':
     print(" - Detrending and generating FFT features data")
     for sigma in [5, 10, 5]:
         x_detrend_sigma = detrend_data(dataset, sigma=sigma)
-        feature_name = 'detrend_gaussian%d' % sigma
-        if args.test: feature_name = feature_name + '_test'
+        feature_name = concat_if_test('detrend_gaussian%d' % sigma, args.test)
         save_features(x_detrend_sigma, feature_name)
 
         fft_normalized_sigma = generate_fft_features(x_detrend_sigma)
-        feature_name = 'fft_smoothed_sigma%d' % sigma
-        if args.test: feature_name = feature_name + '_test'
+        feature_name = concat_if_test('fft_smoothed_sigma%d' % sigma, args.test)
         save_features(fft_normalized_sigma, feature_name)
+
+    print(" - Detrending using median")
+    x_detrend_median81 = detrend_data_median(dataset, kernel_size=81)
+    feature_name = concat_if_test('detrend_median81', args.test)
+    save_features(x_detrend_median81, feature_name) # TODO Centralize naming of test data
+
+    fft_detrend_median81 = generate_fft_features(x_detrend_median81)
+    feature_name = concat_if_test('fft_smoothed_median81', args.test)
+    save_features(fft_detrend_median81, feature_name)
 
     print ' - Processing Wavelet Features'
     wavelet_db2_a, wavelet_db2_b = dwt(x, 'db2')

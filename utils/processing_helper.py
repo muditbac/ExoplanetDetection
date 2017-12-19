@@ -38,9 +38,9 @@ def generate_dataset(struct, dataset_name, is_test=False):
 
     dataset = np.hstack(features_numpy)
 
-    dataset_name = os.path.join(DATASETS_PATH, '%s_X.npy' % dataset_name)
-    make_dir_if_not_exists(os.path.dirname(dataset_name))
-    dataset.dump(dataset_name)
+    dataset_filename = os.path.join(DATASETS_PATH, '%s_X.npy' % dataset_name)
+    make_dir_if_not_exists(os.path.dirname(dataset_filename))
+    dataset.dump(dataset_filename)
 
     if not is_test:
         target_feature_name, target_transformer = struct['target']
