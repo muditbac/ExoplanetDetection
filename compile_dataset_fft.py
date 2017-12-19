@@ -8,3 +8,14 @@ if __name__ == '__main__':
         'target': ('labels', SimpleTransform())
     }
     generate_dataset(struct, 'fft_smoothed10_dataset')
+
+    struct = {
+        'features': [
+            ('fft_smoothed_sigma20', SimpleTransform()),
+            # ('fft_half_normalized', SimpleTransform()),
+            # ('fft_normalized', SimpleTransform()),
+        ],
+        'target': ('labels', SimpleTransform())
+    }
+
+    generate_dataset(struct, 'fft_smoothed20_dataset')
