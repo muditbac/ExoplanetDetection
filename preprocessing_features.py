@@ -116,7 +116,7 @@ if __name__ == '__main__':
     save_features(x_smoothed_gaussian, feature_name)
 
     print(" - Detrending and generating FFT features data")
-    for sigma in [5, 10, 5]:
+    for sigma in [5, 10, 15, 20]:
         x_detrend_sigma = detrend_data(dataset, sigma=sigma)
         feature_name = concat_if_test('detrend_gaussian%d' % sigma, args.test)
         save_features(x_detrend_sigma, feature_name)
