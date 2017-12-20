@@ -41,23 +41,20 @@ def save_model(model, model_filename):
             cPickle.dump(model, fp)
 
 
-def load_model(dataset_name, model_file_name):
+def load_model(dataset_name, model_filename):
     """
     Loads a model
     :param dataset_name: Name of the dataset to load
-    :param model_file_name: Name of the model to load
+    :param model_filename: Name of the model to load
     """
-    if not cnn:
-        with open(os.path.join(MODELFILE_PATH, dataset_name+'_'+model_file_name+'.model'), 'rb') as fp:
-            return cPickle.load(fp)
-    else:
-        archi_file = os.path.join(MODELFILE_PATH, dataset_name+'_'+model_file_name+'_archi'+'.model')
-        weights_file = os.path.join(MODELFILE_PATH, dataset_name+'_'+model_file_name+'_weights'+'.model')
+    model_filename = os.path.join(MODELFILE_PATH, '%s_%s.model' % (dataset_name, model_filename))
+    with open(model_filename, 'rb') as fp:
+        model_wrapper = cPickle.load(fp)
+    if isinstance(model_wrapper, KerasClassifier):
+        archi_file = os.path.join(MODELFILE_PATH, dataset_name+'_'+model_filename+'_archi'+'.model')
+        weights_file = os.path.join(MODELFILE_PATH, dataset_name+'_'+model_filename+'_weights'+'.model')
         model = model_from_json(open(archi_file).read())
         model.load_weights(weights_file)
 
-        model_filename = os.path.join(MODELFILE_PATH, '%s_%s.model' % (dataset_name, model_file_name))
-        with open(model_filename, 'rb') as fp:
-            model_wrapper = cPickle.load(fp)
         model_wrapper.model = model
-        return model_wrapper
+    return model_wrapper

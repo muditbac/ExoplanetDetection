@@ -41,10 +41,7 @@ def test_model(model_name, dataset_name):
     :param dataset_name: Name of the dataset
     """
     clear_prior_probs()
-    if model_name.split('_')[0] == 'cnn':
-        model = load_model(dataset_name, model_name, cnn=True)
-    else:
-        model = load_model(dataset_name, model_name)
+    model = load_model(dataset_name, model_name)
     X = load_testdata(dataset_name)
     probs = model.predict_proba(X)
     print 'Saved the predicted probabilities'
