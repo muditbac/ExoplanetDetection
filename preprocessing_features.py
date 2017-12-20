@@ -116,11 +116,13 @@ if __name__ == '__main__':
         save_features(fft_normalized_sigma, 'fft_smoothed_sigma%d' % sigma, args.test)
 
     print(" - Detrending using median")
-    x_detrend_median81 = detrend_data_median(dataset, kernel_size=81)
-    save_features(x_detrend_median81, 'detrend_median81', args.test)
+    for kernel_size in [41, 81]:
+        print(" - \t Processing for kernel size %d"%kernel_size)
+        x_detrend_median = detrend_data_median(dataset, kernel_size=kernel_size)
+        save_features(x_detrend_median, 'detrend_median%d' % kernel_size, args.test)
 
-    fft_detrend_median81 = generate_fft_features(x_detrend_median81)
-    save_features(fft_detrend_median81, 'fft_smoothed_median81', args.test)
+        fft_detrend_median = generate_fft_features(x_detrend_median)
+        save_features(fft_detrend_median, 'fft_smoothed_median%d' % kernel_size, args.test)
 
     print ' - Processing Wavelet Features'
     wavelet_db2_a, wavelet_db2_b = dwt(x, 'db2')
