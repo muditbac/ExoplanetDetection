@@ -1,13 +1,11 @@
 import cPickle
-import pickle
-import numpy as np
-import json
-from config import FEATURES_PATH, DATASETS_PATH, FOLDS_FILENAME, MODELFILE_PATH
 import os
-import pickle as pkl
+import pickle
+
 from keras.models import model_from_json
 from keras.wrappers.scikit_learn import KerasClassifier
 
+from config import MODELFILE_PATH
 from utils.processing_helper import make_dir_if_not_exists
 
 

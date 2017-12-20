@@ -1,13 +1,12 @@
 import argparse
 import cPickle
 import os
-import time
 
 import numpy as np
 
 from config import TEST_PREDICTIONS_PATH
-from utils.processing_helper import load_dataset, load_testdata, make_dir_if_not_exists
 from utils.model_utils import load_model
+from utils.processing_helper import load_testdata, make_dir_if_not_exists
 
 np.set_printoptions(precision=3)
 

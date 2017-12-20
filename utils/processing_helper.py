@@ -1,12 +1,10 @@
-import cPickle
-import pickle
-import numpy as np
-import json
-from config import FEATURES_PATH, DATASETS_PATH, FOLDS_FILENAME, MODELFILE_PATH
 import os
-from sklearn.base import BaseEstimator, TransformerMixin
 import pickle as pkl
-from keras.models import model_from_json
+
+import numpy as np
+from sklearn.base import BaseEstimator, TransformerMixin
+
+from config import FEATURES_PATH, DATASETS_PATH, FOLDS_FILENAME
 
 identity = lambda x: x
 
