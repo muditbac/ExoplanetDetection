@@ -8,7 +8,7 @@ train_stats_filename = 'data/train_stats.npy'
 DATASETS_PATH = 'datasets/'
 FEATURES_PATH = 'features/'
 RESULTS_PATH = 'results/'
-PROBS_PATH = 'features/probability_results/test/'
+TEST_PREDICTIONS_PATH = 'features/probability_results/test/'
 MODELFILE_PATH = 'model_params/'
 
 k_fold = 5

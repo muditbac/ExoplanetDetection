@@ -8,7 +8,8 @@ from datetime import datetime
 from sklearn.metrics import confusion_matrix, roc_auc_score, precision_recall_fscore_support, average_precision_score
 
 from config import RESULTS_PATH, MODELFILE_PATH
-from utils.processing_helper import load_dataset, load_folds, save_model
+from utils.processing_helper import load_dataset, load_folds
+from utils.model_utils import save_model
 from utils.python_utils import start_logging
 
 np.set_printoptions(precision=3)

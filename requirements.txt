@@ -7,4 +7,3 @@ keras
 mlxtend
 imblearn
 PyWavelets
-h5py
