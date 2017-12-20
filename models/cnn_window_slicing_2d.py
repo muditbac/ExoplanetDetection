@@ -59,12 +59,10 @@ class KerasBatchClassifier(KerasClassifier):
         # callbacks = [early_stopping, model_checkpoint]
         # fit_args.update({"callbacks": callbacks})
 
-        self.__history = self.model.fit_generator(
+        return self.model.fit_generator(
             self.batch_generator(X, y, batch_size=self.sk_params["batch_size"]),
             steps_per_epoch=2*X.shape[0] // self.sk_params["batch_size"],
             **fit_args)
-
-        return self.__history
 
     def predict_proba(self, X, **kwargs):
         mid_cut = max_slice_start_idx//2

@@ -12,16 +12,14 @@ random.seed(random_seed)
 tf.set_random_seed(random_seed)
 
 from keras.layers import Conv1D, MaxPool1D, Dense, Dropout, Flatten, \
-    BatchNormalization
+    BatchNormalization, Input, Activation, Add
 from keras.layers import Reshape
 from keras.models import Sequential
 from keras.optimizers import Adam
 from keras.wrappers.scikit_learn import KerasClassifier
-
-from hyperopt import hp
+from keras.models import Model
 
 input_shape = [3197, 2]
-
 
 class KerasBatchClassifier(KerasClassifier):
     """
@@ -62,6 +60,16 @@ class KerasBatchClassifier(KerasClassifier):
             steps_per_epoch=2*X.shape[0] // self.sk_params["batch_size"],
             **fit_args)
 
+    def predict_proba(self, x, **kwargs):
+        kwargs = self.filter_sk_params(Sequential.predict_proba, kwargs)
+        probs = self.model.predict(x, **kwargs)
+
+        # check if binary classification
+        if probs.shape[1] == 1:
+            # first column is probability of class 0 and second is of class 1
+            probs = np.hstack([1 - probs, probs])
+        return probs
+
     @staticmethod
     def batch_generator(x_train, y_train, batch_size=32):
         """
@@ -94,34 +102,54 @@ class KerasBatchClassifier(KerasClassifier):
         return self.__history
 
 
-def create_model(learning_rate=50e-5, dropout_1=0.5, dropout_2=0.25):
-    model = Sequential()
-    model.add(Reshape(input_shape, input_shape=(np.prod(input_shape),)))
-    model.add(Conv1D(filters=8, kernel_size=11, activation='relu'))
-    model.add(MaxPool1D(strides=4))
-    model.add(BatchNormalization())
-    model.add(Conv1D(filters=16, kernel_size=11, activation='relu'))
-    model.add(MaxPool1D(strides=4))
-    model.add(BatchNormalization())
-    model.add(Conv1D(filters=32, kernel_size=11, activation='relu'))
-    model.add(MaxPool1D(strides=4))
-    model.add(BatchNormalization())
-    model.add(Conv1D(filters=64, kernel_size=11, activation='relu'))
-    model.add(MaxPool1D(strides=4))
-    model.add(Flatten())
-    model.add(Dropout(dropout_1))
-    model.add(Dense(64, activation='relu'))
-    model.add(Dropout(dropout_2))
-    model.add(Dense(64, activation='relu'))
-    model.add(Dense(1, activation='sigmoid'))
-    model.compile(optimizer=Adam(learning_rate, decay=4e-4), loss='binary_crossentropy', metrics=['accuracy'])
+def create_model():
+    input_data = Input(shape=(np.prod(input_shape),))
+    input_data_reshape = Reshape(input_shape)(input_data)
+    x = Conv1D(filters=8, kernel_size=11, strides=2)(input_data_reshape)
+    x = BatchNormalization(axis=1, name='bn_1')(x)
+    x = Activation('relu')(x)
+    x = MaxPool1D(strides=4)(x)
+
+    # Shortcut for the first residual block
+    shortcut = Conv1D(filters=16, kernel_size=11, strides=1, padding='SAME')(x)
+    shortcut = BatchNormalization(axis=1, name='bn_2')(shortcut)
+
+    # 1st conv block
+    x1 = Conv1D(filters=16, kernel_size=11, strides=1, padding='SAME')(x)
+    x1 = BatchNormalization(axis=1, name='bn_3')(x1)
+    x1 = Activation('relu')(x1)
+    x2 = Conv1D(filters=16, kernel_size=11, strides=1, padding='SAME')(x1)
+    x2 = BatchNormalization(axis=1, name='bn_4')(x2)
+
+    # Merge the layers for the first conv block
+    block_1 = Add()([shortcut, x2])
+    block_1 = Activation('relu')(block_1)
+
+    # Shortcut for the second residual block
+    shortcut = Conv1D(filters=32, kernel_size=11, strides=1, padding='SAME')(block_1)
+    shortcut = BatchNormalization(axis=1, name='bn_5')(shortcut)
+    shortcut = Activation('relu')(shortcut)
+
+    # 2nd conv block
+    x1 = Conv1D(filters=32, kernel_size=11, strides=1, padding='SAME')(block_1)
+    x1 = BatchNormalization(axis=1, name='bn_6')(x1)
+    x1 = Activation('relu')(x1)
+    x2 = Conv1D(filters=32, kernel_size=11, strides=1, padding='SAME')(x1)
+    x2 = BatchNormalization(axis=1, name='bn_7')(x2)
+
+    # Merge the layers for the second conv block
+    block_2 = Add()([shortcut, x2])
+    block_2 = Activation('relu')(block_2)
+
+    # Rest of the layers
+    flat = Flatten()(block_2)
+    drop1 = Dropout(0.5)(flat)
+    dense1 = Dense(64, activation='relu')(drop1)
+    output = Dense(1, activation='sigmoid')(dense1)
+    model = Model(input_data, output, name='resnet')
+
+    # Compile
+    model.compile(optimizer=Adam(50e-5, decay=2e-4), loss='binary_crossentropy', metrics=['accuracy'])
     return model
 
-
-model = KerasBatchClassifier(build_fn=create_model, epochs=40, batch_size=32, verbose=2, learning_rate=0.005442950, dropout_1=0.5, dropout_2=0.5)
-
-params_space = {
-    'learning_rate': hp.loguniform('learning_rate', -10, -4),
-    'dropout_1': hp.quniform('dropout_1', 0.25, .75, 0.25),
-    'dropout_2': hp.quniform('dropout_2', 0.25, .75, 0.25),
-}
+model = KerasBatchClassifier(build_fn=create_model, epochs=40, batch_size=32, verbose=2)
