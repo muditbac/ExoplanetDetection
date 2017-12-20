@@ -7,11 +7,12 @@ import argparse
 from config import *
 from scipy.ndimage.filters import gaussian_filter
 from scipy.ndimage.filters import uniform_filter1d
-from scipy.signal import medfilt 
+from scipy.signal import medfilt
 from sklearn.preprocessing import MinMaxScaler
 
 from utils.processing_helper import save_features
 from pywt import dwt
+
 
 def get_spectrum(X):
     """
@@ -117,7 +118,7 @@ if __name__ == '__main__':
 
     print(" - Detrending using median")
     for kernel_size in [41, 81]:
-        print(" - \t Processing for kernel size %d"%kernel_size)
+        print(" - \t Processing for kernel size %d" % kernel_size)
         x_detrend_median = detrend_data_median(dataset, kernel_size=kernel_size)
         save_features(x_detrend_median, 'detrend_median%d' % kernel_size, args.test)
 

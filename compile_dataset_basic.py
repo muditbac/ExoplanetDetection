@@ -60,3 +60,19 @@ if __name__ == '__main__':
         'target': ('labels', SimpleTransform())
     }
     generate_dataset(struct, 'detrend_gaussian15_dataset')
+
+    struct = {
+        'features': [
+            ('detrend_median81', SimpleTransform()),
+        ],
+        'target': ('labels', SimpleTransform())
+    }
+    generate_dataset(struct, 'detrend_gaussian81_dataset')
+
+    struct = {
+        'features': [
+            ('detrend_median41', SimpleTransform()),
+        ],
+        'target': ('labels', SimpleTransform())
+    }
+    generate_dataset(struct, 'detrend_gaussian41_dataset')
