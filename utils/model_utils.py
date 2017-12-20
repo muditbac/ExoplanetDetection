@@ -6,17 +6,19 @@ from config import FEATURES_PATH, DATASETS_PATH, FOLDS_FILENAME, MODELFILE_PATH
 import os
 import pickle as pkl
 from keras.models import model_from_json
+from keras.wrappers.scikit_learn import KerasClassifier
+
 from utils.processing_helper import make_dir_if_not_exists
 
 
-def save_model(model, model_filename, cnn=False):
+def save_model(model, model_filename):
     """
     Saves the model
     :param model: model object
     :param model_filename: File name of the model
     """
     print 'Saving the model...'
-    if not cnn:
+    if not isinstance(model, KerasClassifier):
         model_filename = os.path.join(MODELFILE_PATH, '%s.model' % model_filename)
         make_dir_if_not_exists(os.path.dirname(model_filename))
         with open(model_filename, 'wb') as fp:
@@ -39,9 +41,10 @@ def save_model(model, model_filename, cnn=False):
             cPickle.dump(model, fp)
 
 
-def load_model(dataset_name, model_file_name, cnn=False):
+def load_model(dataset_name, model_file_name):
     """
     Loads a model
+    :param dataset_name: Name of the dataset to load
     :param model_file_name: Name of the model to load
     """
     if not cnn:

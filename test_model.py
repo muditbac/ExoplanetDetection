@@ -5,9 +5,9 @@ import time
 
 import numpy as np
 
-from config import PROBS_PATH
+from config import TEST_PREDICTIONS_PATH
 from utils.processing_helper import load_dataset, load_testdata, make_dir_if_not_exists
-from utils.model_saving import load_model
+from utils.model_utils import load_model
 
 np.set_printoptions(precision=3)
 
@@ -16,9 +16,9 @@ def clear_prior_probs():
     """
     Removes any prior probabilities present
     """
-    files = os.listdir(PROBS_PATH)
-    for file in files:
-        os.remove(os.path.join(PROBS_PATH, file))
+    files = os.listdir(TEST_PREDICTIONS_PATH)
+    for file_name in files:
+        os.remove(os.path.join(TEST_PREDICTIONS_PATH, file_name))
 
 
 def dump_results(probs, model_name, dataset_name):
@@ -28,8 +28,8 @@ def dump_results(probs, model_name, dataset_name):
     :param model_name: Name of the model
     :param dataset_name: Name of the dataset
     """
-    make_dir_if_not_exists(PROBS_PATH)
-    result_file = os.path.join(PROBS_PATH, '{}_{}.probs'.format(model_name, dataset_name))
+    make_dir_if_not_exists(TEST_PREDICTIONS_PATH)
+    result_file = os.path.join(TEST_PREDICTIONS_PATH, '{}_{}.probs'.format(model_name, dataset_name))
     with open(result_file, 'wb') as fp:
         cPickle.dump(probs, fp)
 

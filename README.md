@@ -11,4 +11,3 @@ Inter IIT Event 2017
 - mlextend
 - imblearn
 - PyWavelets
-- h5py

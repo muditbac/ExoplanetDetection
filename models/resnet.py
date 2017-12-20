@@ -102,7 +102,7 @@ class KerasBatchClassifier(KerasClassifier):
         return self.__history
 
 
-def create_model():
+def create_model(learning_rate=50e-5, dropout_1=0.5, dropout_2=0.25):
     input_data = Input(shape=(np.prod(input_shape),))
     input_data_reshape = Reshape(input_shape)(input_data)
     x = Conv1D(filters=8, kernel_size=11, strides=2)(input_data_reshape)

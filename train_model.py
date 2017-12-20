@@ -9,7 +9,7 @@ from sklearn.metrics import confusion_matrix, roc_auc_score, precision_recall_fs
 
 from config import RESULTS_PATH, MODELFILE_PATH
 from utils.processing_helper import load_dataset, load_folds
-from utils.model_saving import save_model
+from utils.model_utils import save_model
 from utils.python_utils import start_logging
 
 np.set_printoptions(precision=3)
@@ -59,7 +59,6 @@ def summarize_model(model_name, dataset_name, novalidate):
     :param dataset_name: dataset name to load
     :param novalidate: If True, trains the data into whole dataset and save the model
     """
-    global model
     model = __import__("models.%s" % model_name, globals(), locals(), ['model']).model
 
     X, y = load_dataset(dataset_name)
@@ -91,10 +90,7 @@ def summarize_model(model_name, dataset_name, novalidate):
         print
     else:
         model.fit(X, y)
-        if model_name.split('_')[0] == 'cnn':
-            save_model(model, '%s_%s'%(dataset_name, model_name), True)
-        else:
-            save_model(model, '%s_%s'%(dataset_name, model_name))
+        save_model(model, '%s_%s'%(dataset_name, model_name))
 
 
 if __name__ == '__main__':
