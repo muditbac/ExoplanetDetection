@@ -60,3 +60,17 @@ if __name__ == '__main__':
         ],
     }
     generate_dataset(struct, 'test/fft_smoothed20_dataset', True)
+
+    struct = {
+        'features': [
+             ('test/wavelet_db2_a', SimpleTransform()),
+        ],
+    }
+    generate_dataset(struct, 'test/wavelet_db2_a_dataset', True)
+
+    struct = {
+        'features': [
+             ('test/wavelet_db2_b', SimpleTransform()),
+        ],
+    }
+    generate_dataset(struct, 'test/wavelet_db2_b_dataset', True)

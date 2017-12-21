@@ -15,6 +15,7 @@ def clear_prior_probs():
     """
     Removes any prior probabilities present
     """
+    make_dir_if_not_exists(TEST_PREDICTIONS_PATH)
     files = os.listdir(TEST_PREDICTIONS_PATH)
     for file_name in files:
         os.remove(os.path.join(TEST_PREDICTIONS_PATH, file_name))
@@ -27,7 +28,6 @@ def dump_results(probs, model_name, dataset_name):
     :param model_name: Name of the model
     :param dataset_name: Name of the dataset
     """
-    make_dir_if_not_exists(TEST_PREDICTIONS_PATH)
     result_file = os.path.join(TEST_PREDICTIONS_PATH, '{}_{}.probs'.format(model_name, dataset_name))
     with open(result_file, 'wb') as fp:
         cPickle.dump(probs, fp)
@@ -39,7 +39,6 @@ def test_model(model_name, dataset_name):
     :param model_name: Name of the model to test
     :param dataset_name: Name of the dataset
     """
-    clear_prior_probs()
     model = load_model(dataset_name, model_name)
     X = load_testdata(dataset_name)
     probs = model.predict_proba(X)

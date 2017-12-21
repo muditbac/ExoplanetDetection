@@ -1,13 +1,18 @@
 from utils.processing_helper import SimpleTransform, generate_dataset
+import argparse
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--test', help="'train' or 'test' data", action='store_true')
+    args = parser.parse_args()
+
     struct = {
         'features': [
             ('fft_smoothed_sigma10', SimpleTransform()),
         ],
         'target': ('labels', SimpleTransform())
     }
-    generate_dataset(struct, 'fft_smoothed10_dataset')
+    generate_dataset(struct, 'fft_smoothed10_dataset', args.test)
 
     struct = {
         'features': [
@@ -18,7 +23,7 @@ if __name__ == '__main__':
         'target': ('labels', SimpleTransform())
     }
 
-    generate_dataset(struct, 'fft_smoothed20_dataset')
+    generate_dataset(struct, 'fft_smoothed20_dataset', args.test)
 
     struct = {
         'features': [
@@ -26,7 +31,7 @@ if __name__ == '__main__':
         ],
         'target': ('labels', SimpleTransform())
     }
-    generate_dataset(struct, 'fft_smoothed_median81_dataset')
+    generate_dataset(struct, 'fft_smoothed_median81_dataset', args.test)
 
     struct = {
         'features': [
@@ -34,4 +39,4 @@ if __name__ == '__main__':
         ],
         'target': ('labels', SimpleTransform())
     }
-    generate_dataset(struct, 'fft_smoothed_median41_dataset')
+    generate_dataset(struct, 'fft_smoothed_median41_dataset', args.test)

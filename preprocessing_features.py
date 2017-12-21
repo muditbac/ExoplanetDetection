@@ -127,5 +127,5 @@ if __name__ == '__main__':
 
     print ' - Processing Wavelet Features'
     wavelet_db2_a, wavelet_db2_b = dwt(x, 'db2')
-    save_features(wavelet_db2_a, 'wavelet_db2_a')
-    save_features(wavelet_db2_b, 'wavelet_db2_b')
+    save_features(wavelet_db2_a, 'wavelet_db2_a', args.test)
+    save_features(wavelet_db2_b, 'wavelet_db2_b', args.test)

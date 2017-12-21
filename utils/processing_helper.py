@@ -20,12 +20,12 @@ class SimpleTransform(BaseEstimator, TransformerMixin):
         return self.transformer(X)
 
 
-def generate_dataset(struct, dataset_name, is_test=False):
+def generate_dataset(struct, dataset_name, test=False):
     """
     Generate the dataset from list of features and target variable
     :param struct: dict containing information of features and target variable
     :param dataset_name: name of the dataset
-    :param is_test: if True then target values are not required in struct
+    :param test: if True then target values are not required in struct
     """
     features = struct['features']
 
@@ -39,11 +39,15 @@ def generate_dataset(struct, dataset_name, is_test=False):
 
     dataset = np.hstack(features_numpy)
 
-    dataset_filename = os.path.join(DATASETS_PATH, '%s_X.npy' % dataset_name)
+    if test:
+        dataset_filename = os.path.join(DATASETS_PATH, 'test/%s_X.npy' % dataset_name)
+    else:
+        dataset_filename = os.path.join(DATASETS_PATH, '%s_X.npy' % dataset_name)
+
     make_dir_if_not_exists(os.path.dirname(dataset_filename))
     dataset.dump(dataset_filename)
 
-    if not is_test:
+    if not test:
         target_feature_name, target_transformer = struct['target']
         # Processing the target variable
         target_values = np.load(os.path.join(FEATURES_PATH, '%s.npy' % target_feature_name))
