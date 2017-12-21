@@ -2,9 +2,8 @@ from __future__ import division
 import numpy as np
 from sklearn.preprocessing import PolynomialFeatures
 import pandas as pd
-from sklearn.decomposition import PCA
-from scipy.ndimage.filters import uniform_filter1d
 from scipy.signal import argrelextrema
+from utils.processing_helper import save_features
 
 def normalize(data):
     return (data-np.min(data))/(float(np.max(data))-float(np.min(data)))
@@ -76,12 +75,9 @@ def features(Data):
     Local_Min_Std=normalize(Local_Min_Std)
     No_of_local_minima=normalize(No_of_local_minima)
 
-    features=np.column_stack  ((Mean,Std_Dev,Median,T0,T1,T2,Local_Max_Mean,Local_Max_Std,No_of_local_maxima,Local_Min_Mean,Local_Min_Std,No_of_local_minima))
-    return features
+    features_=np.column_stack  ((Mean,Std_Dev,Median,T0,T1,T2,Local_Max_Mean,Local_Max_Std,No_of_local_maxima,Local_Min_Mean,Local_Min_Std,No_of_local_minima))
+    interaction = PolynomialFeatures(degree=2, interaction_only=True, include_bias=False)
+    features_dataset=interaction.fit_transform(features_)
+    return features_dataset
 # Create PolynomialFeatures object with interaction_only set to True
-interaction = PolynomialFeatures(degree=2, interaction_only=True, include_bias=False)
-dataset = np.load('detrend_gaussian10_dataset_X.npy')
-features = features(dataset)
-features_dataset=interaction.fit_transform(features)
-print features_dataset.shape
-np.save('features_1_dataset.npy',features_dataset)
+

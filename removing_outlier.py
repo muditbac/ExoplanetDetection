@@ -1,22 +1,24 @@
 import numpy as np
-import matplotlib.pylab as plt
 from PyAstronomy import pyasl
-a = np.load('raw_normalized_dataset_X.npy')
-median = np.median(a,axis=1)
-std = np.std(a,axis=1)
-x_new =[]
-x = np.copy(a)
-for i in xrange(x.shape[0]):
-    index=[]
-    r = pyasl.generalizedESD(x[i], 100, 2, fullOutput=True)
-    r_1 = np.array(r[1])
+def outlier_removal(data):
+    a = np.copy(data)
+    median = np.median(a,axis=1)
+    std = np.std(a,axis=1)
+    x_new =[]
+    x = np.copy(a)
+    for i in xrange(x.shape[0]):
+        index=[]
+        r = pyasl.generalizedESD(x[i], 100, 2, fullOutput=True)
+        r_1 = np.array(r[1])
 
-    for j in xrange(x.shape[1]):
-        if x[i][j] > median[i] + 2*std[i]:
-            index.append(j)
-    index = np.array(index)
+        for j in xrange(x.shape[1]):
+            if x[i][j] > median[i] + 2*std[i]:
+                index.append(j)
+        index = np.array(index)
     
-    for k in np.intersect1d(index, r_1):
-        x[i][k] = x[i][k-1]
-    x_new.append(x[i])
-print np.array(x_new).shape
+        for k in np.intersect1d(index, r_1):
+            x[i][k] = x[i][k-1]
+        x_new.append(x[i])
+    x_new = np.array(x_new)
+    return x_new
+
