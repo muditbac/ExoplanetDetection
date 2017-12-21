@@ -13,7 +13,7 @@ steps = [
 model = Pipeline(steps=steps)
 
 params_space = {
-    'xgb__max_depth': quniform_int('max_depth', 10, 30, 1),
+    'xgb__max_depth': quniform_int('max_depth', 5, 30, 1),
     'xgb__min_child_weight': hp.quniform('min_child_weight', 1, 20, 1),
     'xgb__subsample': hp.uniform('subsample', 0.8, 1),
     'xgb__n_estimators': quniform_int('n_estimators', 1000, 10000, 50),
