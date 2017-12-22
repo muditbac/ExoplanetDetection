@@ -70,7 +70,7 @@ def preprocess_data(raw_data, is_test=False):
         labels = raw_data[:, 0] - 1
         features = raw_data[:, 1:]
     else:
-        features = raw_data
+        features = raw_data[:, 1:]
     mean = features.mean(axis=1).reshape(-1, 1)
     std = features.std(axis=1).reshape(-1, 1)
     features = (features - mean) / std
