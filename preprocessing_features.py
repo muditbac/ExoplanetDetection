@@ -117,7 +117,7 @@ if __name__ == '__main__':
         save_features(fft_normalized_sigma, 'fft_smoothed_sigma%d' % sigma, args.test)
 
     print(" - Detrending using median")
-    for kernel_size in [41, 81]:
+    for kernel_size in [21, 41, 81]:
         print(" - \t Processing for kernel size %d" % kernel_size)
         x_detrend_median = detrend_data_median(dataset, kernel_size=kernel_size)
         save_features(x_detrend_median, 'detrend_median%d' % kernel_size, args.test)

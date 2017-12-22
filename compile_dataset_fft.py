@@ -40,3 +40,11 @@ if __name__ == '__main__':
         'target': ('labels', SimpleTransform())
     }
     generate_dataset(struct, 'fft_smoothed_median41_dataset', args.test)
+
+    struct = {
+        'features': [
+            ('fft_smoothed_median21', SimpleTransform()),
+        ],
+        'target': ('labels', SimpleTransform())
+    }
+    generate_dataset(struct, 'fft_smoothed_median21_dataset', args.test)

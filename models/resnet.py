@@ -4,6 +4,7 @@ import types
 
 import numpy as np
 import tensorflow as tf
+from hyperopt import hp
 
 from config import random_seed
 
@@ -102,7 +103,7 @@ class KerasBatchClassifier(KerasClassifier):
         return self.__history
 
 
-def create_model(learning_rate=50e-5, dropout_1=0.5, dropout_2=0.25):
+def create_model(learning_rate=50e-5, dropout1=0.5):
     input_data = Input(shape=(np.prod(input_shape),))
     input_data_reshape = Reshape(input_shape)(input_data)
     x = Conv1D(filters=8, kernel_size=11, strides=2)(input_data_reshape)
@@ -143,13 +144,18 @@ def create_model(learning_rate=50e-5, dropout_1=0.5, dropout_2=0.25):
 
     # Rest of the layers
     flat = Flatten()(block_2)
-    drop1 = Dropout(0.5)(flat)
+    drop1 = Dropout(dropout1)(flat)
     dense1 = Dense(64, activation='relu')(drop1)
     output = Dense(1, activation='sigmoid')(dense1)
     model = Model(input_data, output, name='resnet')
 
     # Compile
-    model.compile(optimizer=Adam(50e-5, decay=2e-4), loss='binary_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer=Adam(learning_rate, decay=2e-4), loss='binary_crossentropy', metrics=['accuracy'])
     return model
 
 model = KerasBatchClassifier(build_fn=create_model, epochs=40, batch_size=32, verbose=2)
+
+params_space = {
+    'lr': hp.loguniform('lr', -10, -4),
+    'dropout1': hp.quniform('dropout1', 0.25, .75, 0.25),
+}

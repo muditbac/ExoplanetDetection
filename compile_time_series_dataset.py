@@ -1,5 +1,6 @@
 import argparse
 
+from preprocessing_features import generate_fft_features
 from utils.processing_helper import SimpleTransform, generate_dataset
 
 if __name__ == '__main__':
@@ -22,6 +23,31 @@ if __name__ == '__main__':
         'target': ('labels', SimpleTransform())
     }
     generate_dataset(struct, 'raw_ar_coeff500_dataset', test=args.test)
+
+    struct = {
+        'features': [
+            ('raw_auto_correlation_all', SimpleTransform())
+        ],
+        'target': ('labels', SimpleTransform())
+    }
+    generate_dataset(struct, 'raw_auto_correlation_dataset', test=args.test)
+
+    struct = {
+        'features': [
+            ('raw_mean_std_normalized', SimpleTransform()),
+            ('raw_auto_correlation_all', SimpleTransform())
+        ],
+        'target': ('labels', SimpleTransform())
+    }
+    generate_dataset(struct, 'orig_with_correlation_dataset', test=args.test)
+
+    struct = {
+        'features': [
+            ('raw_auto_correlation_all', SimpleTransform(transformer=generate_fft_features))
+        ],
+        'target': ('labels', SimpleTransform())
+    }
+    generate_dataset(struct, 'raw_fft_auto_correlation_dataset', test=args.test)
 
     struct = {
         'features': [
