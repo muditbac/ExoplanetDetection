@@ -1,13 +1,19 @@
+import argparse
+
 from utils.processing_helper import SimpleTransform, generate_dataset
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--test', help="'train' or 'test' data", action='store_true')
+    args = parser.parse_args()
+
     struct = {
         'features': [
             ('tsfeats/raw_ar_coeff100', SimpleTransform())
         ],
         'target': ('labels', SimpleTransform())
     }
-    generate_dataset(struct, 'raw_ar_coeff100_dataset')
+    generate_dataset(struct, 'raw_ar_coeff100_dataset', test=args.test)
 
     struct = {
         'features': [
@@ -15,7 +21,7 @@ if __name__ == '__main__':
         ],
         'target': ('labels', SimpleTransform())
     }
-    generate_dataset(struct, 'raw_ar_coeff500_dataset')
+    generate_dataset(struct, 'raw_ar_coeff500_dataset', test=args.test)
 
     struct = {
         'features': [
@@ -24,7 +30,7 @@ if __name__ == '__main__':
         ],
         'target': ('labels', SimpleTransform())
     }
-    generate_dataset(struct, 'fft_smoothed10_ar100_dataset')
+    generate_dataset(struct, 'fft_smoothed10_ar100_dataset', test=args.test)
 
     struct = {
         'features': [
@@ -76,4 +82,4 @@ if __name__ == '__main__':
         ],
         'target': ('labels', SimpleTransform())
     }
-    generate_dataset(struct, 'raw_time_series_dataset')
+    generate_dataset(struct, 'raw_time_series_dataset', test=args.test)

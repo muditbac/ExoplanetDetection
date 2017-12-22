@@ -1,4 +1,4 @@
-from statsmodels.tsa import arima_model
+from statsmodels.tsa import arima_model, stattools
 from tsfresh.feature_extraction.feature_calculators import number_peaks, minimum, maximum, mean, median, length, \
     variance, skewness, kurtosis, sum_values, abs_energy, mean_change, ar_coefficient, \
     percentage_of_reoccurring_datapoints_to_all_datapoints, mean_abs_change, count_below_mean, has_duplicate_min, \
@@ -6,17 +6,31 @@ from tsfresh.feature_extraction.feature_calculators import number_peaks, minimum
     last_location_of_maximum, first_location_of_maximum, longest_strike_below_mean, longest_strike_above_mean, \
     sum_of_reoccurring_values, first_location_of_minimum, sum_of_reoccurring_data_points, \
     variance_larger_than_standard_deviation, ratio_value_number_to_time_series_length, \
-    percentage_of_reoccurring_values_to_all_values, agg_autocorrelation, agg_linear_trend, \
-    augmented_dickey_fuller, autocorrelation, binned_entropy, c3, cid_ce, energy_ratio_by_chunks, \
+    percentage_of_reoccurring_values_to_all_values, agg_linear_trend, \
+    augmented_dickey_fuller, binned_entropy, c3, cid_ce, energy_ratio_by_chunks, \
     fft_aggregated, fft_coefficient, friedrich_coefficients, index_mass_quantile, linear_trend, \
     partial_autocorrelation, spkt_welch_density
 import pandas as pd
-import os
+import os, sys
 import argparse
 import numpy as np
-
+import pyflux as pf
 from config import raw_data_filename, FEATURES_PATH, testing_filename
-from utils.processing_helper import save_features, make_dir_if_not_exists, features_exists
+from utils.processing_helper import save_features, make_dir_if_not_exists, features_exists, parallelize_row
+
+
+def generate_arima_feats(x_values, order=(5, 5, 1), verbose=True):
+    p, q, d = order
+    result = []
+    for i in xrange(x_values.shape[0]):
+        if verbose: print '.',
+        sys.stdout.flush()
+        arma = pf.ARIMA(data=x_values[i], ar=p, ma=q, integ=d).fit('MLE')
+        coefficients = np.zeros(p+q+1)
+        for j in xrange(len(arma.z.z_list)-1):
+            coefficients[j] = arma.z.z_list[j].prior.transform(arma.results.x[j])
+        result.append(coefficients)
+    return np.array(result)
 
 
 def get_arma_coefficients(series, order=(2, 3)):
@@ -27,19 +41,19 @@ def get_arma_coefficients(series, order=(2, 3)):
     return model.params
 
 
-def get_arima_coefficients(series, order=(5, 1, 5)):
+def get_arima_coefficients(series, order=(2, 1, 3)):
     """
     Returns the ARIMA model coefficients for the given model with order (p, d, q)
     """
     model = arima_model.ARIMA(series, order).fit(disp=False)
     return model.params
 
-  
+
 def autocorrelation_all(series):
     """
     Returns auto-correlation for each possible lag
     """
-    return np.array([autocorrelation(series, i) for i in xrange(len(series))])
+    return stattools.acf(series, nlags=len(series))
 
 
 def generate_time_series_feats(x_dataset, dataset_name="raw", test=False):
@@ -134,11 +148,14 @@ def generate_time_series_feats(x_dataset, dataset_name="raw", test=False):
             print("Already generated")
 
     # Auto-correlations as features
-    # TODO Add corr features
-    # TODO Extract other timeseries features
     print("- Processing Auto-correlation features...")
     corr_dataset = x_dataset.apply(autocorrelation_all, axis=1, raw=True)
-    save_features(corr_dataset.values, 'auto_correlation_all', test)
+    save_features(corr_dataset.values, '%s_auto_correlation_all' % dataset_name, test)
+
+    print("- Processing ARIMA(5,5,1) Features...")
+    arima_features = parallelize_row(x_dataset.values, generate_arima_feats, n_jobs=2)
+    assert arima_features.shape[0] == x_dataset.shape[0] # Assert the axis
+    save_features(arima_features, '%s_arima_5_5_1' % dataset_name, test)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

@@ -5,6 +5,8 @@ import sys
 from hyperopt.pyll import scope
 from hyperopt.pyll_utils import validate_label
 
+from utils.processing_helper import make_dir_if_not_exists
+
 
 class Logger(object):
     """
@@ -28,6 +30,7 @@ class Logger(object):
 
 def start_logging(filename):
     """Start logger, appending print output to given filename"""
+    make_dir_if_not_exists(os.path.dirname(filename))
     sys.stdout = Logger(filename)
 
 

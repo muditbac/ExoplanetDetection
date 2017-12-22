@@ -1,5 +1,6 @@
 import os
 import pickle as pkl
+from multiprocessing import Pool
 
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -78,6 +79,7 @@ def save_features(data, features_name, test=False):
     Save the features in the features folder
     :param data: numpy array or pandas dataframe with samples x features format
     :param features_name: name of the filename
+    :param test: True if to save features in test folder
     """
     if not isinstance(data, np.ndarray):
         data = data.values
@@ -97,9 +99,9 @@ def features_exists(feature_name, test=False):
     Checks if feature/s exists with given name
     """
     if test:
-        return os.path.exists(os.path.join(FEATURES_PATH, feature_name + '.npy'))
-    else:
         return os.path.exists(os.path.join(FEATURES_PATH, 'test', feature_name + '.npy'))
+    else:
+        return os.path.exists(os.path.join(FEATURES_PATH, feature_name + '.npy'))
 
 
 def make_dir_if_not_exists(dir_name):
@@ -116,3 +118,12 @@ def load_folds():
     :return: list of (train_split, test_split)
     """
     return pkl.load(open(FOLDS_FILENAME, 'r'))
+
+
+def parallelize_row(data, func, n_jobs):
+    data_split = np.array_split(data, n_jobs)
+    pool = Pool(n_jobs)
+    data = np.concatenate(pool.map(func, data_split))
+    pool.close()
+    pool.join()
+    return data
