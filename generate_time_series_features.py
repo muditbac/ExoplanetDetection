@@ -1,3 +1,4 @@
+from statsmodels.tsa import arima_model
 from tsfresh.feature_extraction.feature_calculators import number_peaks, minimum, maximum, mean, median, length, \
     variance, skewness, kurtosis, sum_values, abs_energy, mean_change, ar_coefficient, \
     percentage_of_reoccurring_datapoints_to_all_datapoints, mean_abs_change, count_below_mean, has_duplicate_min, \
@@ -18,6 +19,22 @@ from config import raw_data_filename, FEATURES_PATH, testing_filename
 from utils.processing_helper import save_features, make_dir_if_not_exists, features_exists
 
 
+def get_arma_coefficients(series, order=(2, 3)):
+    """
+    Returns the ARMA model coefficients for the given model
+    """
+    model = arima_model.ARMA(series, order).fit(disp=False)
+    return model.params
+
+
+def get_arima_coefficients(series, order=(5, 1, 5)):
+    """
+    Returns the ARIMA model coefficients for the given model with order (p, d, q)
+    """
+    model = arima_model.ARIMA(series, order).fit(disp=False)
+    return model.params
+
+  
 def autocorrelation_all(series):
     """
     Returns auto-correlation for each possible lag
@@ -116,10 +133,12 @@ def generate_time_series_feats(x_dataset, dataset_name="raw", test=False):
         else:
             print("Already generated")
 
+    # Auto-correlations as features
+    # TODO Add corr features
+    # TODO Extract other timeseries features
     print("- Processing Auto-correlation features...")
     corr_dataset = x_dataset.apply(autocorrelation_all, axis=1, raw=True)
     save_features(corr_dataset.values, 'auto_correlation_all', test)
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
