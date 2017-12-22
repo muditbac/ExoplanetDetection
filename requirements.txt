@@ -8,3 +8,5 @@ mlxtend
 imblearn
 PyWavelets
 h5py
+PyAstronomy
+statsmodels

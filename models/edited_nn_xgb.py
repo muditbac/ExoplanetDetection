@@ -8,13 +8,14 @@ from config import random_seed
 from utils.python_utils import quniform_int
 
 steps = [
-    ('undersampler', EditedNearestNeighbours(random_state = random_seed)),
+    ('undersampler', EditedNearestNeighbours(random_state = random_seed, n_neighbors=3)),
     ('xgb', xgb.XGBClassifier(n_estimators=1000, silent=True, nthread=3, seed=random_seed))
 ]
 
 model = Pipeline(steps=steps)
 
 params_space = {
+    'undersampler__n_neighbors': quniform_int('n_neighbors', 2, 10, 1),
     'xgb__max_depth': quniform_int('max_depth', 10, 30, 1),
     'xgb__min_child_weight': hp.quniform('min_child_weight', 1, 20, 1),
     'xgb__subsample': hp.uniform('subsample', 0.8, 1),

@@ -3,15 +3,13 @@ import os
 import pandas as pd
 import scipy
 import argparse
-from feature_extract import normalize , features
-from removing_outlier import outlier_removal
-from generate_arma_feats import generate_arma_feats
-from fast_dtw import dtw
+
 from config import *
 from scipy.ndimage.filters import gaussian_filter
 from scipy.ndimage.filters import uniform_filter1d
-from scipy.signal import medfilt 
+from scipy.signal import medfilt
 from sklearn.preprocessing import MinMaxScaler
+
 from utils.processing_helper import save_features
 from pywt import dwt
 
@@ -106,8 +104,6 @@ if __name__ == '__main__':
 
     print(" - Saving calculated features")
     save_features(x, 'raw_mean_std_normalized', args.test)
-    x_outlier_removed = outlier_removal(x)
-    save_features(x_outlier_removed,'raw_mean_std_out_removed',args.test)
     save_features(x_smoothed_uniform, 'raw_mean_std_normalized_smoothed_uniform200', args.test)
     save_features(x_smoothed_gaussian, 'raw_mean_std_normalized_smoothed_gaussian50', args.test)
 
@@ -115,12 +111,6 @@ if __name__ == '__main__':
     for sigma in [5, 10, 15, 20]:
         x_detrend_sigma = detrend_data(dataset, sigma=sigma)
         save_features(x_detrend_sigma, 'detrend_gaussian%d' % sigma, args.test)
-        feature_paper = features(x_detrend_sigma)
-        dtw_distance = dtw(x_detrend_sigma)
-        #arma_coeff = generate_arma_feats(x_detrend_sigma)
-        save_features(feature_paper, 'detrend_gaussian_feature_paper%d' % sigma, args.test)
-        #save_features(arma_coeff,'detrend_gaussian_arma_coeff%d' % sigma, args.test)
-        save_features(dtw_distance,'dtw_distance%d' % sigma, args.test)
 
         fft_normalized_sigma = generate_fft_features(x_detrend_sigma)
         save_features(fft_normalized_sigma, 'fft_smoothed_sigma%d' % sigma, args.test)
