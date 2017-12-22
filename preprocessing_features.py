@@ -13,6 +13,7 @@ from sklearn.preprocessing import MinMaxScaler
 from utils.processing_helper import save_features
 from pywt import dwt
 
+
 def get_spectrum(X):
     """
     Returns the spectrum of the given time series
@@ -117,7 +118,7 @@ if __name__ == '__main__':
 
     print(" - Detrending using median")
     for kernel_size in [41, 81]:
-        print(" - \t Processing for kernel size %d"%kernel_size)
+        print(" - \t Processing for kernel size %d" % kernel_size)
         x_detrend_median = detrend_data_median(dataset, kernel_size=kernel_size)
         save_features(x_detrend_median, 'detrend_median%d' % kernel_size, args.test)
 
@@ -126,5 +127,5 @@ if __name__ == '__main__':
 
     print ' - Processing Wavelet Features'
     wavelet_db2_a, wavelet_db2_b = dwt(x, 'db2')
-    save_features(wavelet_db2_a, 'wavelet_db2_a')
-    save_features(wavelet_db2_b, 'wavelet_db2_b')
+    save_features(wavelet_db2_a, 'wavelet_db2_a', args.test)
+    save_features(wavelet_db2_b, 'wavelet_db2_b', args.test)

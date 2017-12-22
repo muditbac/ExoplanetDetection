@@ -1,12 +1,10 @@
-import cPickle
-import pickle
-import numpy as np
-import json
-from config import FEATURES_PATH, DATASETS_PATH, FOLDS_FILENAME, MODELFILE_PATH
 import os
-from sklearn.base import BaseEstimator, TransformerMixin
 import pickle as pkl
-from keras.models import model_from_json
+
+import numpy as np
+from sklearn.base import BaseEstimator, TransformerMixin
+
+from config import FEATURES_PATH, DATASETS_PATH, FOLDS_FILENAME
 
 identity = lambda x: x
 
@@ -22,12 +20,12 @@ class SimpleTransform(BaseEstimator, TransformerMixin):
         return self.transformer(X)
 
 
-def generate_dataset(struct, dataset_name, is_test=False):
+def generate_dataset(struct, dataset_name, test=False):
     """
     Generate the dataset from list of features and target variable
     :param struct: dict containing information of features and target variable
     :param dataset_name: name of the dataset
-    :param is_test: if True then target values are not required in struct
+    :param test: if True then target values are not required in struct
     """
     features = struct['features']
 
@@ -41,11 +39,15 @@ def generate_dataset(struct, dataset_name, is_test=False):
 
     dataset = np.hstack(features_numpy)
 
-    dataset_filename = os.path.join(DATASETS_PATH, '%s_X.npy' % dataset_name)
+    if test:
+        dataset_filename = os.path.join(DATASETS_PATH, 'test/%s_X.npy' % dataset_name)
+    else:
+        dataset_filename = os.path.join(DATASETS_PATH, '%s_X.npy' % dataset_name)
+
     make_dir_if_not_exists(os.path.dirname(dataset_filename))
     dataset.dump(dataset_filename)
 
-    if not is_test:
+    if not test:
         target_feature_name, target_transformer = struct['target']
         # Processing the target variable
         target_values = np.load(os.path.join(FEATURES_PATH, '%s.npy' % target_feature_name))
@@ -69,45 +71,6 @@ def load_testdata(dataset_name):
     Loads test dataset
     """
     return np.load(os.path.join(DATASETS_PATH, 'test/%s_X.npy' % dataset_name))
-
-
-def save_model(model, model_filename, cnn=False):
-    """
-    Saves the model
-    :param model: model object
-    :param model_filename: File name of the model
-    """
-    print 'Saving the model...'
-    if not cnn:
-        model_filename = os.path.join(MODELFILE_PATH, '%s.model' % model_filename)
-        # make_dir_if_not_exists(os.path.dirname(model_filename))
-        with open(model_filename, 'wb') as fp:
-            pickle.dump(model, fp)
-    else:
-        json_model = model.model.to_json()
-        model_filename_archi = os.path.join(MODELFILE_PATH, '%s_archi.model' % model_filename)
-        model_filename_weights = os.path.join(MODELFILE_PATH, '%s_weights.model' % model_filename)
-        # Save the architecture
-        with open(model_filename_archi, 'wb') as f:
-            f.write(json_model)
-        # Save the weights
-        model.model.save_weights(model_filename_weights, overwrite=True)
-
-
-def load_model(dataset_name, model_file_name, cnn=False):
-    """
-    Loads a model
-    :param model_file_name: Name of the model to load
-    """
-    if not cnn:
-        with open(os.path.join(MODELFILE_PATH, dataset_name+'_'+model_file_name+'.model'), 'rb') as fp:
-            return cPickle.load(fp)
-    else:
-        archi_file = os.path.join(MODELFILE_PATH, dataset_name+'_'+model_file_name+'_archi'+'.model')
-        weights_file = os.path.join(MODELFILE_PATH, dataset_name+'_'+model_file_name+'_weights'+'.model')
-        model = model_from_json(open(archi_file).read())
-        model.load_weights(weights_file)
-        return model
 
 
 def save_features(data, features_name, test=False):

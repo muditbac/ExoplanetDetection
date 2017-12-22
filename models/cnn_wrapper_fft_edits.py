@@ -20,7 +20,7 @@ from keras.wrappers.scikit_learn import KerasClassifier
 
 from hyperopt import hp
 
-input_shape = [3197, 2]
+input_shape = [1599, 1]
 
 
 class KerasBatchClassifier(KerasClassifier):
@@ -59,7 +59,7 @@ class KerasBatchClassifier(KerasClassifier):
 
         return self.model.fit_generator(
             self.batch_generator(X, y, batch_size=self.sk_params["batch_size"]),
-            steps_per_epoch=2*X.shape[0] // self.sk_params["batch_size"],
+            steps_per_epoch=X.shape[0] // self.sk_params["batch_size"],
             **fit_args)
 
     @staticmethod
@@ -94,7 +94,7 @@ class KerasBatchClassifier(KerasClassifier):
         return self.__history
 
 
-def create_model(learning_rate=50e-5, dropout_1=0.5, dropout_2=0.25):
+def create_model(dropout1=0.5, dropout2=0.25, lr=50e-5):
     model = Sequential()
     model.add(Reshape(input_shape, input_shape=(np.prod(input_shape),)))
     model.add(Conv1D(filters=8, kernel_size=11, activation='relu'))
@@ -109,19 +109,19 @@ def create_model(learning_rate=50e-5, dropout_1=0.5, dropout_2=0.25):
     model.add(Conv1D(filters=64, kernel_size=11, activation='relu'))
     model.add(MaxPool1D(strides=4))
     model.add(Flatten())
-    model.add(Dropout(dropout_1))
+    model.add(Dropout(dropout1))
     model.add(Dense(64, activation='relu'))
-    model.add(Dropout(dropout_2))
+    model.add(Dropout(dropout2))
     model.add(Dense(64, activation='relu'))
     model.add(Dense(1, activation='sigmoid'))
-    model.compile(optimizer=Adam(learning_rate, decay=4e-4), loss='binary_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer=Adam(lr, decay=2e-4), loss='binary_crossentropy', metrics=['accuracy'])
     return model
 
 
-model = KerasBatchClassifier(build_fn=create_model, epochs=40, batch_size=32, verbose=2, learning_rate=0.005442950, dropout_1=0.5, dropout_2=0.5)
+model = KerasBatchClassifier(build_fn=create_model, epochs=100, batch_size=32, verbose=2)
 
 params_space = {
-    'learning_rate': hp.loguniform('learning_rate', -10, -4),
-    'dropout_1': hp.quniform('dropout_1', 0.25, .75, 0.25),
-    'dropout_2': hp.quniform('dropout_2', 0.25, .75, 0.25),
+    'lr': hp.loguniform('lr', -10, -4),
+    'dropout1': hp.quniform('dropout1', 0.25, .75, 0.25),
+    'dropout2': hp.quniform('dropout2', 0.25, .75, 0.25),
 }

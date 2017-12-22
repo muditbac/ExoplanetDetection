@@ -1,17 +1,17 @@
 import argparse
 import os
 import pprint
-import cPickle
+from datetime import datetime
 
 import numpy as np
-from datetime import datetime
 from sklearn.metrics import confusion_matrix, roc_auc_score, precision_recall_fscore_support, average_precision_score
 
-from config import RESULTS_PATH, MODELFILE_PATH
-from utils.processing_helper import load_dataset, load_folds, save_model
+from config import RESULTS_PATH
+from utils.processing_helper import load_dataset, load_folds
 from utils.python_utils import start_logging
 
 np.set_printoptions(precision=3)
+
 
 def get_metrics(y_true, y_pred, threshold):
     """
@@ -88,15 +88,19 @@ def summarize_model(model_name, dataset_name, novalidate):
         pprint.pprint(model.get_params(), indent=4, depth=1)
         print
     else:
+        # Lazy loading save_model function
+        save_model = __import__("utils.model_utils", globals(), locals(), ['save_model']).save_model
+
         model.fit(X, y)
-        save_model(model, '%s_%s'%(dataset_name, model_name))
+        save_model(model, '%s_%s' % (dataset_name, model_name))
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('dataset', type=str, help="The dataset to process")
     parser.add_argument('model', type=str, help="name of the py")
-    parser.add_argument('--novalidate', '-nv', help="Perform cross-validation or directly train model?", action='store_true')
+    parser.add_argument('--novalidate', '-nv', help="Perform cross-validation or directly train model?",
+                        action='store_true')
     args = parser.parse_args()
 
     # Log the output to file also

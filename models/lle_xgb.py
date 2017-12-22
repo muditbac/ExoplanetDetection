@@ -18,7 +18,6 @@ model = Pipeline(steps=steps)
 
 params_space = {
     'lle__n_components': quniform_int('n_components', 10, 250, 5),
-    'knn__n_neighbors': quniform_int('n_neighbors', 1, 25, 1),
     'xgb__max_depth': quniform_int('max_depth', 10, 30, 1),
     'xgb__min_child_weight': hp.quniform('min_child_weight', 1, 20, 1),
     'xgb__subsample': hp.uniform('subsample', 0.8, 1),

@@ -13,6 +13,7 @@ from tsfresh.feature_extraction.feature_calculators import number_peaks, minimum
 import pandas as pd
 import os
 import argparse
+import numpy as np
 
 from config import raw_data_filename, FEATURES_PATH, testing_filename
 from utils.processing_helper import save_features, make_dir_if_not_exists, features_exists
@@ -32,6 +33,13 @@ def get_arima_coefficients(series, order=(5, 1, 5)):
     """
     model = arima_model.ARIMA(series, order).fit(disp=False)
     return model.params
+
+  
+def autocorrelation_all(series):
+    """
+    Returns auto-correlation for each possible lag
+    """
+    return np.array([autocorrelation(series, i) for i in xrange(len(series))])
 
 
 def generate_time_series_feats(x_dataset, dataset_name="raw", test=False):
@@ -87,17 +95,18 @@ def generate_time_series_feats(x_dataset, dataset_name="raw", test=False):
         else:
             print("Already generated")
 
-    ar_param_k100 = [{"coeff": i, "k": 100} for i in range(100+1)]
-    ar_param_k500 = [{"coeff": i, "k": 500} for i in range(500+1)]
-    agg50_mean_linear_trend = [{"attr": val, "chunk_len": 50, "f_agg": "mean"} for val in ("pvalue", "rvalue", "intercept", "slope", "stderr")]
+    ar_param_k100 = [{"coeff": i, "k": 100} for i in range(100 + 1)]
+    ar_param_k500 = [{"coeff": i, "k": 500} for i in range(500 + 1)]
+    agg50_mean_linear_trend = [{"attr": val, "chunk_len": 50, "f_agg": "mean"} for val in
+                               ("pvalue", "rvalue", "intercept", "slope", "stderr")]
     aug_dickey_fuler_params = [{"attr": "teststat"}, {"attr": "pvalue"}, {"attr": "usedlag"}]
     energy_ratio_num10_focus5 = [{"num_segments": 10, "segment_focus": 5}]
     fft_aggr_spectrum = [{"aggtype": "centroid"}, {"aggtype": "variance"}, {"aggtype": "skew"}, {"aggtype": "kurtosis"}]
-    fft_coefficient_real = [{"coeff": i, "attr": "real"} for i in range((time_length+1)//2)]
-    fft_coefficient_imag = [{"coeff": i, "attr": "imag"} for i in range((time_length+1)//2)]
-    fft_coefficient_abs = [{"coeff": i, "attr": "abs"} for i in range((time_length+1)//2)]
-    fft_coefficient_angle = [{"coeff": i, "attr": "angle"} for i in range((time_length+1)//2)]
-    linear_trend_params = [{"attr": val}for val in ("pvalue", "rvalue", "intercept", "slope", "stderr")]
+    fft_coefficient_real = [{"coeff": i, "attr": "real"} for i in range((time_length + 1) // 2)]
+    fft_coefficient_imag = [{"coeff": i, "attr": "imag"} for i in range((time_length + 1) // 2)]
+    fft_coefficient_abs = [{"coeff": i, "attr": "abs"} for i in range((time_length + 1) // 2)]
+    fft_coefficient_angle = [{"coeff": i, "attr": "angle"} for i in range((time_length + 1) // 2)]
+    linear_trend_params = [{"attr": val} for val in ("pvalue", "rvalue", "intercept", "slope", "stderr")]
 
     other_feats_dict = {
         "ar_coeff100": lambda x: dict(ar_coefficient(x, ar_param_k100)),
@@ -127,6 +136,9 @@ def generate_time_series_feats(x_dataset, dataset_name="raw", test=False):
     # Auto-correlations as features
     # TODO Add corr features
     # TODO Extract other timeseries features
+    print("- Processing Auto-correlation features...")
+    corr_dataset = x_dataset.apply(autocorrelation_all, axis=1, raw=True)
+    save_features(corr_dataset.values, 'auto_correlation_all', test)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -134,10 +146,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.test:
-        dataset = pd.read_csv(testing_filename)
+        x_dataset = pd.read_csv(testing_filename)
     else:
         dataset = pd.read_csv(raw_data_filename)
+        x_dataset = dataset.iloc[:, 1:]
 
     print('Extracting time series features...')
-    x_dataset = dataset.iloc[:, 1:]
     generate_time_series_feats(x_dataset, test=args.test)
