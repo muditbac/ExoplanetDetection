@@ -58,10 +58,11 @@ class KerasBatchClassifier(KerasClassifier):
 
         return self.model.fit_generator(
             self.batch_generator(X, y, batch_size=self.sk_params["batch_size"]),
-            steps_per_epoch=2*X.shape[0] // self.sk_params["batch_size"],
+            steps_per_epoch=2 * X.shape[0] // self.sk_params["batch_size"],
             **fit_args)
 
     def predict_proba(self, x, **kwargs):
+        x = x.reshape([-1] + input_shape)
         kwargs = self.filter_sk_params(Sequential.predict_proba, kwargs)
         probs = self.model.predict(x, **kwargs)
 
@@ -69,6 +70,8 @@ class KerasBatchClassifier(KerasClassifier):
         if probs.shape[1] == 1:
             # first column is probability of class 0 and second is of class 1
             probs = np.hstack([1 - probs, probs])
+        else:
+            raise NotImplementedError
         return probs
 
     @staticmethod
@@ -77,7 +80,7 @@ class KerasBatchClassifier(KerasClassifier):
         Gives equal number of positive and negative samples, and rotates them randomly in time
         """
         half_batch = batch_size // 2
-        x_batch = np.empty((batch_size, x_train.shape[1]), dtype='float32')
+        x_batch = np.empty([batch_size] + input_shape, dtype='float32')
         y_batch = np.empty((batch_size, y_train.shape[1]), dtype='float32')
 
         yes_idx = np.where(y_train[:, 0] == 1.)[0]
@@ -87,8 +90,8 @@ class KerasBatchClassifier(KerasClassifier):
             np.random.shuffle(yes_idx)
             np.random.shuffle(non_idx)
 
-            x_batch[:half_batch] = x_train[yes_idx[:half_batch]]
-            x_batch[half_batch:] = x_train[non_idx[half_batch:batch_size]]
+            x_batch[:half_batch] = np.reshape(x_train[yes_idx[:half_batch]], [-1] + input_shape)
+            x_batch[half_batch:] = np.reshape(x_train[non_idx[half_batch:batch_size]], [-1] + input_shape)
             y_batch[:half_batch] = y_train[yes_idx[:half_batch]]
             y_batch[half_batch:] = y_train[non_idx[half_batch:batch_size]]
 
@@ -104,8 +107,7 @@ class KerasBatchClassifier(KerasClassifier):
 
 
 def create_model(learning_rate=50e-5, dropout1=0.5):
-    input_data = Input(shape=(np.prod(input_shape),))
-    input_data_reshape = Reshape(input_shape)(input_data)
+    input_data_reshape = Input(shape=input_shape)
     x = Conv1D(filters=8, kernel_size=11, strides=2)(input_data_reshape)
     x = BatchNormalization(axis=1, name='bn_1')(x)
     x = Activation('relu')(x)
@@ -147,15 +149,16 @@ def create_model(learning_rate=50e-5, dropout1=0.5):
     drop1 = Dropout(dropout1)(flat)
     dense1 = Dense(64, activation='relu')(drop1)
     output = Dense(1, activation='sigmoid')(dense1)
-    model = Model(input_data, output, name='resnet')
+    model = Model(input_data_reshape, output, name='resnet')
 
     # Compile
     model.compile(optimizer=Adam(learning_rate, decay=2e-4), loss='binary_crossentropy', metrics=['accuracy'])
     return model
 
+
 model = KerasBatchClassifier(build_fn=create_model, epochs=40, batch_size=32, verbose=2)
 
 params_space = {
-    'lr': hp.loguniform('lr', -10, -4),
+    'learning_rate': hp.loguniform('learning_rate', -10, -4),
     'dropout1': hp.quniform('dropout1', 0.25, .75, 0.25),
 }

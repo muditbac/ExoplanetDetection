@@ -4,12 +4,20 @@ import pickle as pkl
 from datetime import datetime
 
 from hyperopt import STATUS_OK, Trials, fmin, tpe
+from sklearn.metrics import average_precision_score
 from sklearn.model_selection import cross_val_predict
 
 from config import RESULTS_PATH
 from train_model import analyze_results
 from utils.processing_helper import load_dataset, load_folds
-from utils.python_utils import start_logging, print_dict, read_pickle_if_exists
+from utils.python_utils import start_logging, print_dict, read_pickle_if_exists, prettyfloat
+
+
+def get_foldwise_metric(y_true, y_pred, cv, metric):
+    result = []
+    for _, test_indexes in cv:
+        result.append(prettyfloat(metric(y_true[test_indexes], y_pred[test_indexes])))
+    return result
 
 
 def tune_model(model_name, dataset_name, n_trials, args):
@@ -27,7 +35,11 @@ def tune_model(model_name, dataset_name, n_trials, args):
 
         model.set_params(**params)
         y_pred = cross_val_predict(model, X, y, cv=folds, method='predict_proba', verbose=2, n_jobs=args['n_jobs'])
+
+        print "Fold Wise AUPRC ", get_foldwise_metric(y, y_pred[:, 1], folds, average_precision_score)
+        # values = ['%0.2f' % val for val in ]
         results = analyze_results(y, y_pred[:, 1])
+
         max_f1_score = max(results, key=lambda x: x[1][3])[1][3]
         return {'loss': -max_f1_score, 'status': STATUS_OK}
 
@@ -63,6 +75,5 @@ if __name__ == '__main__':
     start_logging(os.path.join(RESULTS_PATH, 'tune_%s_%s_%s.txt' % (current_timestring, args.dataset, args.model)))
 
     tune_model(args.model, args.dataset, n_trials=args.trials, args={
-            'n_jobs': args.n_jobs
-        })
-
+        'n_jobs': args.n_jobs
+    })

@@ -71,12 +71,14 @@ def summarize_model(model_name, dataset_name, novalidate):
 
             model.fit(X_train, y_train)
             y_pred = model.predict_proba(X_val)[:, 1]
+            y_pred_train = model.predict_proba(X_train)[:, 1]
 
             # Copying the values to generate predictions of complete dataset
             y_complete_pred[val_index] = y_pred
 
             print "[Fold %d]: " % (i + 1)
             print "Fold Summary: ",
+            print "Training AUPRC - %8.4f" % average_precision_score(y_train, y_pred_train)
             analyze_results(y_val, y_pred)
             print
 

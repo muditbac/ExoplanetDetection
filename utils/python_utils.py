@@ -63,3 +63,7 @@ def read_pickle_if_exists(filename):
     else:
         return None
 
+
+class prettyfloat(float):
+    def __repr__(self):
+        return "%0.2f" % self

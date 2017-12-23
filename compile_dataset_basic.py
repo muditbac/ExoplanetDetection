@@ -33,6 +33,15 @@ if __name__ == '__main__':
     }
     generate_dataset(struct, 'raw_normalized_gaussian50_dataset', args.test)
 
+    # Only gaussian smoothing 50
+    struct = {
+        'features': [
+            ('raw_mean_std_normalized_smoothed_gaussian50', SimpleTransform()),
+        ],
+        'target': ('labels', SimpleTransform())
+    }
+    generate_dataset(struct, 'smoothed_gaussian50_dataset', args.test)
+
     struct = {
         'features': [
             ('detrend_gaussian10', SimpleTransform()),
