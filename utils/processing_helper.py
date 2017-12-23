@@ -30,6 +30,10 @@ def generate_dataset(struct, dataset_name, test=False):
     """
     features = struct['features']
 
+    if test:
+        dataset_name = 'test/%s' % dataset_name
+        features = [('test/%s' % feature_name, feature_transform) for feature_name, feature_transform in features]
+
     # Processing features
     features_numpy = []
     for i, (feature, transformer) in enumerate(features):
@@ -40,10 +44,7 @@ def generate_dataset(struct, dataset_name, test=False):
 
     dataset = np.hstack(features_numpy)
 
-    if test:
-        dataset_filename = os.path.join(DATASETS_PATH, 'test/%s_X.npy' % dataset_name)
-    else:
-        dataset_filename = os.path.join(DATASETS_PATH, '%s_X.npy' % dataset_name)
+    dataset_filename = os.path.join(DATASETS_PATH, '%s_X.npy' % dataset_name)
 
     make_dir_if_not_exists(os.path.dirname(dataset_filename))
     dataset.dump(dataset_filename)

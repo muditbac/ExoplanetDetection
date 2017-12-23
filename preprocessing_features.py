@@ -22,23 +22,21 @@ def get_spectrum(X):
     return np.abs(spectrum)
 
 
-def detrend_data(raw_dataset, sigma=10):
+def detrend_data(dataset_x, sigma=10):
     """
     Removes the trend from the time series using gaussian smoothing
-    :param raw_dataset:
+    :param dataset_x:
     :param sigma:
     :return:
     """
-    data = raw_dataset.values[:, 1:]
-    smooth_data = gaussian_filter(data, sigma=sigma)
-    difference = data - smooth_data
+    smooth_data = gaussian_filter(dataset_x, sigma=sigma)
+    difference = dataset_x - smooth_data
     return difference
 
 
-def detrend_data_median(raw_dataset, kernel_size=81):
-    data = raw_dataset.iloc[:, 1:]
-    smooth_data = data.apply(medfilt, axis=1, kernel_size=kernel_size)
-    difference = data - smooth_data
+def detrend_data_median(dataset_x, kernel_size=81):
+    smooth_data = dataset_x.apply(medfilt, axis=1, kernel_size=kernel_size)
+    difference = dataset_x - smooth_data
     return difference.values
 
 
@@ -87,8 +85,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.test:
         dataset = pd.read_csv(testing_filename)
+        dataset_x = dataset
     else:
         dataset = pd.read_csv(raw_data_filename)
+        dataset_x = dataset.iloc[:, 1:]
 
     print("Preprocessing data...")
 
@@ -110,7 +110,7 @@ if __name__ == '__main__':
 
     print(" - Detrending and generating FFT features data")
     for sigma in [5, 10, 15, 20]:
-        x_detrend_sigma = detrend_data(dataset, sigma=sigma)
+        x_detrend_sigma = detrend_data(dataset_x, sigma=sigma)
         save_features(x_detrend_sigma, 'detrend_gaussian%d' % sigma, args.test)
 
         fft_normalized_sigma = generate_fft_features(x_detrend_sigma)
@@ -119,7 +119,7 @@ if __name__ == '__main__':
     print(" - Detrending using median")
     for kernel_size in [21, 41, 81]:
         print(" - \t Processing for kernel size %d" % kernel_size)
-        x_detrend_median = detrend_data_median(dataset, kernel_size=kernel_size)
+        x_detrend_median = detrend_data_median(dataset_x, kernel_size=kernel_size)
         save_features(x_detrend_median, 'detrend_median%d' % kernel_size, args.test)
 
         fft_detrend_median = generate_fft_features(x_detrend_median)

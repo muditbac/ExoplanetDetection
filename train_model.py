@@ -94,6 +94,8 @@ def summarize_model(model_name, dataset_name, novalidate):
         save_model = __import__("utils.model_utils", globals(), locals(), ['save_model']).save_model
 
         model.fit(X, y)
+        y_pred_train = model.predict_proba(X)[:, 1]
+        print "Training AUPRC - %8.4f" % average_precision_score(y, y_pred_train)
         save_model(model, '%s_%s' % (dataset_name, model_name))
 
 
