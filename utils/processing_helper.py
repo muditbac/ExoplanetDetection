@@ -33,7 +33,11 @@ def generate_dataset(struct, dataset_name, test=False):
     # Processing features
     features_numpy = []
     for i, (feature, transformer) in enumerate(features):
-        x_all = np.load(os.path.join(FEATURES_PATH, '%s.npy' % feature))
+        if test:
+            root_path = os.path.join(FEATURES_PATH, 'test')
+        else:
+            root_path = FEATURES_PATH
+        x_all = np.load(os.path.join(root_path, '%s.npy' % feature))
         x_all = transformer.fit_transform(x_all)
 
         features_numpy.append(x_all)

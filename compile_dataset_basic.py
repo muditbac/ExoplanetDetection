@@ -44,6 +44,14 @@ if __name__ == '__main__':
 
     struct = {
         'features': [
+            ('raw_mean_std_normalized_smoothed_gaussian50', SimpleTransform()),
+        ],
+        'target': ('labels', SimpleTransform())
+    }
+    generate_dataset(struct, 'raw_mean_std_normalized_smoothed_gaussian50_dataset', args.test)
+
+    struct = {
+        'features': [
             ('detrend_gaussian10', SimpleTransform()),
             ('raw_mean_std_normalized_smoothed_gaussian50', SimpleTransform()),
         ],
