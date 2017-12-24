@@ -103,6 +103,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('dataset', type=str, help="The dataset to process")
     parser.add_argument('model', type=str, help="name of the py")
+    parser.add_argument('--both', help="Will cross_validate and train the model with complete dataset",
+                        action='store_true')
     parser.add_argument('--novalidate', '-nv', help="Perform cross-validation or directly train model?",
                         action='store_true')
     args = parser.parse_args()
@@ -111,4 +113,8 @@ if __name__ == '__main__':
     current_timestring = datetime.now().strftime("%Y%m%d%H%M%S")
     start_logging(os.path.join(RESULTS_PATH, '%s_%s_%s.txt' % (current_timestring, args.dataset, args.model)))
 
-    summarize_model(args.model, args.dataset, args.novalidate)
+    if args.both:
+        summarize_model(args.model, args.dataset, False)
+        summarize_model(args.model, args.dataset, True)
+    else:
+        summarize_model(args.model, args.dataset, args.novalidate)
