@@ -13,7 +13,7 @@ random.seed(random_seed)
 tf.set_random_seed(random_seed)
 
 from keras.layers import Conv1D, MaxPool1D, Dense, Dropout, Flatten, \
-    BatchNormalization, Input, Activation, Add
+    BatchNormalization, Input, Activation, Add, AveragePooling1D
 from keras.layers import Reshape
 from keras.models import Sequential
 from keras.optimizers import Adam
@@ -108,46 +108,139 @@ class KerasBatchClassifier(KerasClassifier):
 
 def create_model(learning_rate=50e-5, dropout1=0.5):
     input_data_reshape = Input(shape=input_shape)
-    x = Conv1D(filters=8, kernel_size=11, strides=2)(input_data_reshape)
+    x = Conv1D(filters=32, kernel_size=11, strides=2)(input_data_reshape)
     x = BatchNormalization(axis=1, name='bn_1')(x)
     x = Activation('relu')(x)
     x = MaxPool1D(strides=4)(x)
 
     # Shortcut for the first residual block
-    shortcut = Conv1D(filters=16, kernel_size=11, strides=1, padding='SAME')(x)
+    shortcut = Conv1D(filters=128, kernel_size=1, strides=1, padding='SAME')(x)
     shortcut = BatchNormalization(axis=1, name='bn_2')(shortcut)
-
     # 1st conv block
-    x1 = Conv1D(filters=16, kernel_size=11, strides=1, padding='SAME')(x)
-    x1 = BatchNormalization(axis=1, name='bn_3')(x1)
+    x1 = Conv1D(filters=32, kernel_size=1, strides=1, padding='SAME')(x)
+    x1 = BatchNormalization(axis=1)(x1)
     x1 = Activation('relu')(x1)
-    x2 = Conv1D(filters=16, kernel_size=11, strides=1, padding='SAME')(x1)
-    x2 = BatchNormalization(axis=1, name='bn_4')(x2)
+    x1 = Conv1D(filters=32, kernel_size=3, strides=1, padding='SAME')(x1)
+    x1 = BatchNormalization(axis=1)(x1)
+    x1 = Activation('relu')(x1)
+    x1 = Conv1D(filters=128, kernel_size=1, strides=1, padding='SAME')(x1)
+    x1 = BatchNormalization(axis=1)(x1)
 
     # Merge the layers for the first conv block
-    block_1 = Add()([shortcut, x2])
+    block_1 = Add()([shortcut, x1])
     block_1 = Activation('relu')(block_1)
 
+    x = block_1
+
     # Shortcut for the second residual block
-    shortcut = Conv1D(filters=32, kernel_size=11, strides=1, padding='SAME')(block_1)
-    shortcut = BatchNormalization(axis=1, name='bn_5')(shortcut)
-    shortcut = Activation('relu')(shortcut)
+    for _ in range(2):
+        shortcut = x
+        # 2nd conv block
+        x1 = Conv1D(filters=32, kernel_size=1, strides=1, padding='SAME')(x)
+        x1 = BatchNormalization(axis=1)(x1)
+        x1 = Activation('relu')(x1)
+        x1 = Conv1D(filters=32, kernel_size=3, strides=1, padding='SAME')(x1)
+        x1 = BatchNormalization(axis=1)(x1)
+        x1 = Activation('relu')(x1)
+        x1 = Conv1D(filters=128, kernel_size=1, strides=1, padding='SAME')(x1)
+        x1 = BatchNormalization(axis=1)(x1)
 
-    # 2nd conv block
-    x1 = Conv1D(filters=32, kernel_size=11, strides=1, padding='SAME')(block_1)
-    x1 = BatchNormalization(axis=1, name='bn_6')(x1)
+        # Merge the layers for the second conv block
+        block_2 = Add()([shortcut, x1])
+        block_2 = Activation('relu')(block_2)
+        x = block_2
+
+    # 3rd
+    shortcut = Conv1D(filters=256, kernel_size=1, strides=2, padding='SAME')(x)
+    shortcut = BatchNormalization(axis=1)(shortcut)
+    # Residual
+    x1 = Conv1D(filters=64, kernel_size=1, strides=2, padding='SAME')(x)
+    x1 = BatchNormalization(axis=1)(x1)
     x1 = Activation('relu')(x1)
-    x2 = Conv1D(filters=32, kernel_size=11, strides=1, padding='SAME')(x1)
-    x2 = BatchNormalization(axis=1, name='bn_7')(x2)
+    x1 = Conv1D(filters=64, kernel_size=3, strides=1, padding='SAME')(x1)
+    x1 = BatchNormalization(axis=1)(x1)
+    x1 = Activation('relu')(x1)
+    x1 = Conv1D(filters=256, kernel_size=1, strides=1, padding='SAME')(x1)
+    x1 = BatchNormalization(axis=1)(x1)
 
-    # Merge the layers for the second conv block
-    block_2 = Add()([shortcut, x2])
-    block_2 = Activation('relu')(block_2)
+    # Sum
+    block_1 = Add()([shortcut, x1])
+    x = Activation('relu')(block_1)
+
+    for _ in range(1):
+        shortcut = x
+        # 2nd conv block
+        x1 = Conv1D(filters=64, kernel_size=1, strides=1, padding='SAME')(x)
+        x1 = BatchNormalization(axis=1)(x1)
+        x1 = Activation('relu')(x1)
+        x1 = Conv1D(filters=64, kernel_size=3, strides=1, padding='SAME')(x1)
+        x1 = BatchNormalization(axis=1)(x1)
+        x1 = Activation('relu')(x1)
+        x1 = Conv1D(filters=256, kernel_size=1, strides=1, padding='SAME')(x1)
+        x1 = BatchNormalization(axis=1)(x1)
+
+        # Merge the layers for the second conv block
+        block_2 = Add()([shortcut, x1])
+        block_2 = Activation('relu')(block_2)
+        x = block_2
+
+    # 3rd
+    shortcut = Conv1D(filters=512, kernel_size=1, strides=2, padding='SAME')(x)
+    shortcut = BatchNormalization(axis=1)(shortcut)
+    # Residual
+    x1 = Conv1D(filters=64, kernel_size=1, strides=2, padding='SAME')(x)
+    x1 = BatchNormalization(axis=1)(x1)
+    x1 = Activation('relu')(x1)
+    x1 = Conv1D(filters=64, kernel_size=3, strides=1, padding='SAME')(x1)
+    x1 = BatchNormalization(axis=1)(x1)
+    x1 = Activation('relu')(x1)
+    x1 = Conv1D(filters=512, kernel_size=1, strides=1, padding='SAME')(x1)
+    x1 = BatchNormalization(axis=1)(x1)
+
+    # Sum
+    block_1 = Add()([shortcut, x1])
+    x = Activation('relu')(block_1)
+
+    for _ in range(1):
+        shortcut = x
+        x1 = Conv1D(filters=64, kernel_size=1, strides=1, padding='SAME')(x)
+        x1 = BatchNormalization(axis=1)(x1)
+        x1 = Activation('relu')(x1)
+        x1 = Conv1D(filters=64, kernel_size=3, strides=1, padding='SAME')(x1)
+        x1 = BatchNormalization(axis=1)(x1)
+        x1 = Activation('relu')(x1)
+        x1 = Conv1D(filters=512, kernel_size=1, strides=1, padding='SAME')(x1)
+        x1 = BatchNormalization(axis=1)(x1)
+
+        # Merge the layers for the second conv block
+        block_2 = Add()([shortcut, x1])
+        block_2 = Activation('relu')(block_2)
+        x = block_2
+
+
+    # 4th
+    shortcut = Conv1D(filters=1024, kernel_size=1, strides=2, padding='SAME')(x)
+    shortcut = BatchNormalization(axis=1)(shortcut)
+    # Residual
+    x1 = Conv1D(filters=128, kernel_size=1, strides=2, padding='SAME')(x)
+    x1 = BatchNormalization(axis=1)(x1)
+    x1 = Activation('relu')(x1)
+    x1 = Conv1D(filters=128, kernel_size=3, strides=1, padding='SAME')(x1)
+    x1 = BatchNormalization(axis=1)(x1)
+    x1 = Activation('relu')(x1)
+    x1 = Conv1D(filters=1024, kernel_size=1, strides=1, padding='SAME')(x1)
+    x1 = BatchNormalization(axis=1)(x1)
+
+    # Sum
+    block_1 = Add()([shortcut, x1])
+    x = Activation('relu')(block_1)
+
+    x = AveragePooling1D(pool_size=50)(x)
 
     # Rest of the layers
-    flat = Flatten()(block_2)
+    flat = Flatten()(x)
     drop1 = Dropout(dropout1)(flat)
-    dense1 = Dense(64, activation='relu')(drop1)
+    dense1 = Dense(256, activation='relu')(drop1)
     output = Dense(1, activation='sigmoid')(dense1)
     model = Model(input_data_reshape, output, name='resnet')
 
