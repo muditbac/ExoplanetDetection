@@ -118,7 +118,7 @@ def create_model(learning_rate=50e-5, dropout_1=0.5, dropout_2=0.25):
     return model
 
 
-model = KerasBatchClassifier(build_fn=create_model, epochs=40, batch_size=32, verbose=2, learning_rate=0.00364126596462, dropout_1=0.5, dropout_2=0.75)
+model = KerasBatchClassifier(build_fn=create_model, epochs=40, batch_size=32, verbose=2, learning_rate=0.0013989765129, dropout_1=0.75, dropout_2=0.5)
 
 params_space = {
     'learning_rate': hp.loguniform('learning_rate', -10, -4),
