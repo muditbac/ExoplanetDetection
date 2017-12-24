@@ -4,11 +4,13 @@ import os
 
 import numpy as np
 import pandas as pd
+from datetime import datetime
 
-from config import TEST_PREDICTIONS_PATH
+from config import TEST_PREDICTIONS_PATH, RESULTS_PATH
 from utils.model_utils import load_model
 from utils.processing_helper import load_testdata, make_dir_if_not_exists
 from train_model import analyze_results
+from utils.python_utils import start_logging
 
 np.set_printoptions(precision=3)
 
@@ -75,5 +77,9 @@ if __name__ == '__main__':
     parser.add_argument('model', type=str, help="name of the py")
     parser.add_argument('--target', type=str, default=None, help="location to the file (csv) containing ground truth")
     args = parser.parse_args()
+
+    # Log the output to file also
+    current_timestring = datetime.now().strftime("%Y%m%d%H%M%S")
+    start_logging(os.path.join(RESULTS_PATH, 'test_%s_%s_%s.txt' % (current_timestring, args.dataset, args.model)))
 
     test_model(args.model, args.dataset, args.target)
