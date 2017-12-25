@@ -146,36 +146,36 @@ if __name__ == '__main__':
     else:
         x = preprocess_data(dataset, True)
 
-    # print(" - Smoothing features")
-    # x_smoothed_uniform = uniform_filter1d(x, axis=1, size=200)
-    # x_smoothed_gaussian = gaussian_filter(x, sigma=50)
+    print(" - Smoothing features")
+    x_smoothed_uniform = uniform_filter1d(x, axis=1, size=200)
+    x_smoothed_gaussian = gaussian_filter(x, sigma=50)
 
-    # print(" - Saving calculated features")
-    # save_features(x, 'raw_mean_std_normalized', args.test)
-    # save_features(x_smoothed_uniform, 'raw_mean_std_normalized_smoothed_uniform200', args.test)
-    # save_features(x_smoothed_gaussian, 'raw_mean_std_normalized_smoothed_gaussian50', args.test)
+    print(" - Saving calculated features")
+    save_features(x, 'raw_mean_std_normalized', args.test)
+    save_features(x_smoothed_uniform, 'raw_mean_std_normalized_smoothed_uniform200', args.test)
+    save_features(x_smoothed_gaussian, 'raw_mean_std_normalized_smoothed_gaussian50', args.test)
 
-    # print(" - Detrending and generating FFT features data")
-    # for sigma in [5, 10, 15, 20]:
-    #     x_detrend_sigma = detrend_data(dataset_x, sigma=sigma)
-    #     save_features(x_detrend_sigma, 'detrend_gaussian%d' % sigma, args.test)
+    print(" - Detrending and generating FFT features data")
+    for sigma in [5, 10, 15, 20]:
+        x_detrend_sigma = detrend_data(dataset_x, sigma=sigma)
+        save_features(x_detrend_sigma, 'detrend_gaussian%d' % sigma, args.test)
 
-    #     fft_normalized_sigma = generate_fft_features(x_detrend_sigma)
-    #     save_features(fft_normalized_sigma, 'fft_smoothed_sigma%d' % sigma, args.test)
+        fft_normalized_sigma = generate_fft_features(x_detrend_sigma)
+        save_features(fft_normalized_sigma, 'fft_smoothed_sigma%d' % sigma, args.test)
 
-    # print(" - Detrending using median")
-    # for kernel_size in [21, 41, 81]:
-    #     print(" - \t Processing for kernel size %d" % kernel_size)
-    #     x_detrend_median = detrend_data_median(dataset_x, kernel_size=kernel_size)
-    #     save_features(x_detrend_median, 'detrend_median%d' % kernel_size, args.test)
+    print(" - Detrending using median")
+    for kernel_size in [21, 41, 81]:
+        print(" - \t Processing for kernel size %d" % kernel_size)
+        x_detrend_median = detrend_data_median(dataset_x, kernel_size=kernel_size)
+        save_features(x_detrend_median, 'detrend_median%d' % kernel_size, args.test)
 
-    #     fft_detrend_median = generate_fft_features(x_detrend_median)
-    #     save_features(fft_detrend_median, 'fft_smoothed_median%d' % kernel_size, args.test)
+        fft_detrend_median = generate_fft_features(x_detrend_median)
+        save_features(fft_detrend_median, 'fft_smoothed_median%d' % kernel_size, args.test)
 
-    # print ' - Processing Wavelet Features'
-    # wavelet_db2_a, wavelet_db2_b = dwt(x, 'db2')
-    # save_features(wavelet_db2_a, 'wavelet_db2_a', args.test)
-    # save_features(wavelet_db2_b, 'wavelet_db2_b', args.test)
+    print ' - Processing Wavelet Features'
+    wavelet_db2_a, wavelet_db2_b = dwt(x, 'db2')
+    save_features(wavelet_db2_a, 'wavelet_db2_a', args.test)
+    save_features(wavelet_db2_b, 'wavelet_db2_b', args.test)
 
     print ' - Peak Analysis features'
     peak_feats = peak_features(x)
