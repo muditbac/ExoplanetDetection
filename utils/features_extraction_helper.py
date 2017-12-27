@@ -1,33 +1,42 @@
 import numpy as np
+import sys
 from PyAstronomy import pyasl
 from fastdtw import fastdtw
+from scipy.ndimage import gaussian_filter1d
 from scipy.signal import argrelextrema
 from scipy.spatial.distance import euclidean
 from sklearn.preprocessing import PolynomialFeatures
+from utils.processing_helper import parallelize_row
 
 
-# TODO vectorize this
-def outlier_removal(data):
-    a = np.copy(data)
-    median = np.median(a, axis=1)
-    std = np.std(a, axis=1)
-    x_new = []
-    x = np.copy(a)
-    for i in xrange(x.shape[0]):
-        index = []
-        r = pyasl.generalizedESD(x[i], 100, 2, fullOutput=True)
-        r_1 = np.array(r[1])
+def remove_outlier(series, points=80, count=70, deg=3, stdlim=3, trend_stdlim=4):
+    series = np.copy(series)
+    n = series.shape[0]
+    trend = gaussian_filter1d(series, sigma=100)
+    std = series.std()
 
-        for j in xrange(x.shape[1]):
-            if x[i][j] > median[i] + 2 * std[i]:
-                index.append(j)
-        index = np.array(index)
+    outliers = pyasl.slidingPolyResOutlier(np.arange(n), series, points=points, count=count, deg=deg, stdlim=stdlim)[1]
 
-        for k in np.intersect1d(index, r_1):
-            x[i][k] = x[i][k - 1]
-        x_new.append(x[i])
-    x_new = np.array(x_new)
-    return x_new
+    outliers_filtered = np.where(series[outliers] > trend[outliers] + trend_stdlim * std)[0]
+    outliers = outliers[outliers_filtered]
+
+    for outlier in outliers:
+        series[outlier] = np.median(series[outlier - 20:outlier + 20])
+
+    return series
+
+
+def remove_outlier_all(x_values):
+    result = []
+    for series in x_values:
+        result.append(remove_outlier(series))
+        sys.stdout.write('.')
+        sys.stdout.flush()
+    return np.array(result)
+
+
+def remove_outlier_parallel(x_values, n_jobs=-1):
+    return parallelize_row(x_values, remove_outlier_all, n_jobs=n_jobs)
 
 
 def min_max_normalize(data):

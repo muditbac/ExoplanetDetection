@@ -9,6 +9,7 @@ from sklearn.metrics import confusion_matrix, roc_auc_score, precision_recall_fs
 from config import RESULTS_PATH
 from utils.processing_helper import load_dataset, load_folds
 from utils.python_utils import start_logging
+from utils.model_utils import save_model
 
 np.set_printoptions(precision=3)
 
@@ -76,6 +77,9 @@ def summarize_model(model_name, dataset_name, novalidate):
             # Copying the values to generate predictions of complete dataset
             y_complete_pred[val_index] = y_pred
 
+            # Saving the model
+            save_model(model, "%s_%s_fold%d" % (dataset_name, model_name, i))
+
             print "[Fold %d]: " % (i + 1)
             print "Fold Summary: ",
             print "Training AUPRC - %8.4f" % average_precision_score(y_train, y_pred_train)
@@ -90,9 +94,6 @@ def summarize_model(model_name, dataset_name, novalidate):
         pprint.pprint(model.get_params(), indent=4, depth=1)
         print
     else:
-        # Lazy loading save_model function
-        save_model = __import__("utils.model_utils", globals(), locals(), ['save_model']).save_model
-
         model.fit(X, y)
         y_pred_train = model.predict_proba(X)[:, 1]
         print "Training AUPRC - %8.4f" % average_precision_score(y, y_pred_train)
