@@ -1,3 +1,4 @@
+import multiprocessing
 import os
 import pickle as pkl
 from multiprocessing import Pool
@@ -122,9 +123,14 @@ def load_folds():
 
 
 def parallelize_row(data, func, n_jobs):
-    data_split = np.array_split(data, n_jobs)
-    pool = Pool(n_jobs)
-    data = np.concatenate(pool.map(func, data_split))
-    pool.close()
-    pool.join()
-    return data
+    if n_jobs == -1:
+        n_jobs = multiprocessing.cpu_count()
+    if n_jobs > 1:
+        data_split = np.array_split(data, n_jobs)
+        pool = Pool(n_jobs)
+        data = np.concatenate(pool.map(func, data_split))
+        pool.close()
+        pool.join()
+        return data
+    else:
+        return func(data)

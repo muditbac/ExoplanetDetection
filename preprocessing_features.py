@@ -10,6 +10,7 @@ from scipy.ndimage.filters import uniform_filter1d
 from scipy.signal import medfilt
 from sklearn.preprocessing import MinMaxScaler
 
+from utils.features_extraction_helper import remove_outlier_parallel
 from utils.processing_helper import save_features
 from pywt import dwt
 
@@ -91,6 +92,10 @@ if __name__ == '__main__':
         dataset_x = dataset.iloc[:, 1:]
 
     print("Preprocessing data...")
+
+    print(" - Removing outlier")
+    dataset_x = remove_outlier_parallel(dataset_x.values)
+    dataset = np.concatenate([dataset.values[:, 0].reshape(-1, 1), dataset_x], axis=1)
 
     print(" - Normalizing data")
     if not args.test:
