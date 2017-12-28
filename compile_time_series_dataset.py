@@ -171,3 +171,13 @@ if __name__ == '__main__':
         'target': ('labels', SimpleTransform())
     }
     generate_dataset(struct, 'raw_time_series_complete_dataset', test=args.test)
+
+    struct = {
+        'features': [
+            ('peak_features', SimpleTransform()),
+            ('dtw_features', SimpleTransform()),
+            ('peak_features_paper', SimpleTransform())
+        ],
+        'target': ('labels', SimpleTransform())
+    }
+    generate_dataset(struct, 'peak_and_dtw_dataset', test=args.test)
