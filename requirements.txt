@@ -10,3 +10,4 @@ PyWavelets
 h5py
 PyAstronomy
 statsmodels
+peakutils

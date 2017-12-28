@@ -96,6 +96,7 @@ if __name__ == '__main__':
     print(" - Removing outlier")
     dataset_x = remove_outlier_parallel(dataset_x.values)
     dataset = np.concatenate([dataset.values[:, 0].reshape(-1, 1), dataset_x], axis=1)
+    dataset_x = pd.DataFrame(dataset_x)
 
     print(" - Normalizing data")
     if not args.test:
