@@ -47,19 +47,28 @@ def min_max_normalize(data):
     return data
 
 
-def dtw_features(data, template_index):
+def dtw_distance_one_vs_all(data):
     """
     Calculates the Dynamic Time Warping distance from a base template example
     """
+    global y
     n, _ = data.shape
-    y = data[template_index]
     dist = np.zeros(shape=n)
     for i in xrange(n):
         dist[i], _ = fastdtw(data[i], y, dist=euclidean)
-    return dist
+        sys.stdout.write('.')
+        sys.stdout.flush()
+    return dist.reshape(-1, 1)
 
 
-def peak_features(x_dataset):
+def dtw_distance_one_vs_all_parallel(data, template_index):
+    global y
+    y = data[template_index]
+    data = data[:10]
+    return parallelize_row(data, dtw_distance_one_vs_all, n_jobs=-1)
+
+
+def peak_features_paper(x_dataset):
     """
     Extracts the features mentioned in https://pdfs.semanticscholar.org/8c96/1f7357fbc3e22e0e5417744af24662222818.pdf
     """
@@ -74,36 +83,7 @@ def peak_features(x_dataset):
     points_mean_std_below = (x_dataset < mean_minus_2std).sum(axis=1)
     points_above_mean = (x_dataset > mean.reshape(-1, 1)).sum(axis=1)
 
-    # TODO Verify the algorithm
-    local_max_mean = []
-    local_max_std = []
-    no_of_local_maxima = []
-    local_min_mean = []
-    local_min_std = []
-    no_of_local_minima = []
-
-    for i in xrange(x_dataset.shape[0]):
-        local_max = x_dataset[i][argrelextrema(x_dataset[i], np.greater)[0]]
-        no_of_local_maxima.append(len(local_max))
-        local_max_mean.append(np.mean(local_max))
-        local_max_std.append(np.std(local_max))
-
-        local_min = x_dataset[i][argrelextrema(x_dataset[i], np.less)[0]]
-        no_of_local_minima.append(len(local_min))
-        local_min_mean.append(np.mean(local_min))
-        local_min_std.append(np.std(local_min))
-
-    local_min_mean = np.array(local_min_mean)
-    local_min_std = np.array(local_min_std)
-    no_of_local_minima = np.array(no_of_local_minima)
-
-    local_max_mean = np.array(local_max_mean)
-    local_max_std = np.array(local_max_std)
-    no_of_local_maxima = np.array(no_of_local_maxima)
-
-    features = [mean, std_dev, median, points_mean_std_between, points_mean_std_below, points_above_mean,
-                local_max_mean, local_max_std, no_of_local_maxima,
-                local_min_mean, local_min_std, no_of_local_minima]
+    features = [mean, std_dev, median, points_mean_std_between, points_mean_std_below, points_above_mean]
     features = [min_max_normalize(feature) for feature in features]
 
     features_ = np.column_stack(features)

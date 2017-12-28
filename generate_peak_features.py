@@ -1,3 +1,4 @@
+import argparse
 import os
 
 import numpy as np
@@ -7,6 +8,7 @@ from scipy.ndimage import gaussian_filter
 from scipy.stats import kurtosis
 
 from config import FEATURES_PATH
+from utils.features_extraction_helper import peak_features_paper, dtw_distance_one_vs_all_parallel
 from utils.processing_helper import save_features
 
 
@@ -62,22 +64,49 @@ def peak_features(data):
         feats.extend(get_series_peak_features(series, peaks_between_std_2std))
 
         # Stats of peaks between median-2std and median-3std
-        peaks = peaks[series[peaks] <= median[i] - 2*std[i]]
+        peaks = peaks[series[peaks] <= median[i] - 2 * std[i]]
         peaks_between_2std_3std = peaks[series[peaks] > median[i] - 3 * std[i]]
         feats.extend(get_series_peak_features(series, peaks_between_2std_3std))
 
         # Stats of remaining peaks
-        peaks = peaks[series[peaks] <= median[i] - 3*std[i]]
+        peaks = peaks[series[peaks] <= median[i] - 3 * std[i]]
         feats.extend(get_series_peak_features(series, peaks))
 
         features.append(feats)
-        sys.stdout.write('.')
+        if i % 10 == 0: sys.stdout.write('.')
         sys.stdout.flush()
     return np.array(features)
 
 
-if __name__ == '__main__':
-    detrend_median41 = np.load(os.path.join(FEATURES_PATH, 'detrend_median41.npy'))
+def get_dtw_features(data, indexes=None):
+    """
+    Extracts the Dynamic Time Warping time distance between the base templates mentioned and all other row
+    """
+    features = []
+    for i in indexes:
+        features.append(dtw_distance_one_vs_all_parallel(data, i))
+    return np.hstack(features)
 
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--test', help="Generate test features if this is set", action='store_true')
+    args = parser.parse_args()
+
+    if args.test:
+        detrend_median41 = np.load(os.path.join(FEATURES_PATH, 'test', 'detrend_median41.npy'))
+    else:
+        detrend_median41 = np.load(os.path.join(FEATURES_PATH, 'detrend_median41.npy'))
+
+    print(' - Extracting peak features')
     detrend_features = peak_features(detrend_median41)
-    save_features(detrend_features, 'peak_features')
+    save_features(detrend_features, 'peak_features', args.test)
+
+    print(' - Extracting peak features from paper')
+    detrend_features_paper = peak_features_paper(detrend_median41)
+    save_features(detrend_features_paper, 'peak_features_paper', args.test)
+
+    print(' - Extracting DTW features')
+    feats = get_dtw_features(detrend_median41, indexes=[0, 6, 10, 11, 17, 28])
+    save_features(feats, 'dtw_features', args.test)
