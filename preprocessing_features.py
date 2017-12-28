@@ -7,13 +7,12 @@ import argparse
 from config import *
 from scipy.ndimage.filters import gaussian_filter
 from scipy.ndimage.filters import uniform_filter1d
-from scipy.signal import medfilt, savgol_filter, find_peaks_cwt
+from scipy.signal import medfilt
 from sklearn.preprocessing import MinMaxScaler
 
 from utils.processing_helper import save_features
 from pywt import dwt
 
-PEAK_FEATURES_SIZE = 18
 
 def get_spectrum(X):
     """
@@ -52,52 +51,6 @@ def generate_fft_features(raw_signals):
     fft_abs = get_spectrum(difference_normalized)
     half_length = (difference.shape[0] + 1) // 2
     return fft_abs[:, :half_length]
-
-
-def peak_features(X):
-    """
-    Generates peak features
-    """
-    final_features = np.empty([len(X), PEAK_FEATURES_SIZE])
-
-    def find_peaks(smooth):
-        peaks = find_peaks_cwt(-smooth, np.arange(1, 100))
-        return peaks
-
-    def smoothen(data):
-        return savgol_filter(data, polyorder=5, window_length=35)
-
-    def dist_time(data):
-        dist = data - np.roll(data, shift=-1)
-        return np.mean(dist), np.std(dist)
-
-    for idx, data in enumerate(X):
-        smooth = smoothen(data)
-        peaks = find_peaks(smooth)
-        features = np.empty(PEAK_FEATURES_SIZE)
-
-        std1, mean  = np.std(smooth), np.mean(smooth)
-        std2, std3  = 2*std1, 3*std1
-        min1  = np.where(smooth < (mean-std1))
-        min2  = np.where(smooth < (mean-std2))
-        min3  = np.where(smooth < (mean-std3))
-        min01 = np.where(np.logical_and(smooth > (mean-std1), smooth < mean))
-        min12 = np.where(np.logical_and(smooth < (mean-std1), smooth > (mean-std2)))
-        min23 = np.where(np.logical_and(smooth < (mean-std2), smooth > (mean-std3)))
-        
-        # Compute the features
-        features[0], features[1], features[2] = len(min1), len(min2), len(min3)
-        features[3], features[4], features[5] = len(min01), len(min12), len(min23)
-        features[6], features[7]   = dist_time(min1)
-        features[8], features[9]   = dist_time(min2)
-        features[10], features[11] = dist_time(min3)
-        features[12], features[13] = dist_time(min1)
-        features[14], features[15] = dist_time(min2)
-        features[16], features[17] = dist_time(min3)
-
-        final_features[idx] = features
-
-    return final_features
 
 
 def preprocess_data(raw_data, is_test=False):
@@ -176,7 +129,3 @@ if __name__ == '__main__':
     wavelet_db2_a, wavelet_db2_b = dwt(x, 'db2')
     save_features(wavelet_db2_a, 'wavelet_db2_a', args.test)
     save_features(wavelet_db2_b, 'wavelet_db2_b', args.test)
-
-    print ' - Peak Analysis features'
-    peak_feats = peak_features(x)
-    save_features(peak_feats, 'peak_features', args.test)
