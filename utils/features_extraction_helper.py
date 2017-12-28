@@ -1,3 +1,4 @@
+import pickle as pkl
 import numpy as np
 import sys
 from PyAstronomy import pyasl
@@ -61,11 +62,12 @@ def dtw_distance_one_vs_all(data):
     return dist.reshape(-1, 1)
 
 
-def dtw_distance_one_vs_all_parallel(data, template_index):
+def dtw_distance_one_vs_all_parallel(data, template_data):
     global y
-    y = data[template_index]
-    data = data[:10]
-    return parallelize_row(data, dtw_distance_one_vs_all, n_jobs=-1)
+    y = template_data
+    data = parallelize_row(data, dtw_distance_one_vs_all, n_jobs=-1)
+    print
+    return data
 
 
 def peak_features_paper(x_dataset):
