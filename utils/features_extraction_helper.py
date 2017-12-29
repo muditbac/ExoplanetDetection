@@ -85,7 +85,7 @@ def peak_features_paper(x_dataset):
     points_mean_std_below = (x_dataset < mean_minus_2std).sum(axis=1)
     points_above_mean = (x_dataset > mean.reshape(-1, 1)).sum(axis=1)
 
-    features = [mean, std_dev, median, points_mean_std_between, points_mean_std_below, points_above_mean]
+    features = [mean, std_dev, points_mean_std_between, points_mean_std_below, points_above_mean]
     features = [min_max_normalize(feature) for feature in features]
 
     features_ = np.column_stack(features)

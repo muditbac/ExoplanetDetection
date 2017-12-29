@@ -1,3 +1,5 @@
+import argparse
+
 import numpy as np
 from utils.processing_helper import generate_dataset, SimpleTransform
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -15,6 +17,10 @@ class ReshapeTransform(BaseEstimator, TransformerMixin):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--test', help="'train' or 'test' data", action='store_true')
+    args = parser.parse_args()
+
     struct = {
         'features': [
             # ('probability_results/wavelet_db2_b_dataset_xgb', ReshapeTransform()),
@@ -30,4 +36,4 @@ if __name__ == '__main__':
         ],
         'target': ('labels', SimpleTransform())
     }
-    generate_dataset(struct, 'ensemble_dataset_dummy')
+    generate_dataset(struct, 'ensemble_dataset_dummy', test=args.test)

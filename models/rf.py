@@ -13,7 +13,7 @@ model = Pipeline(steps=steps)
 
 params_space = {
     'rf__max_depth': quniform_int('max_depth', 2, 30, 1),
-    'rf_criterion': hp.choice('criterion', ["gini", "entropy"]),
+    'rf__criterion': hp.choice('criterion', ["gini", "entropy"]),
     'rf__n_estimators': quniform_int('n_estimators', 1000, 10000, 50),
     'rf__min_samples_split': quniform_int('min_samples_split', 2, 100, 1),
 }
