@@ -76,7 +76,6 @@ def peak_features_paper(x_dataset):
     """
     mean = np.mean(x_dataset, axis=1)
     std_dev = np.std(x_dataset, axis=1)
-    median = np.median(x_dataset, axis=1)
 
     mean_minus_std = (mean - std_dev).reshape(-1, 1)
     mean_minus_2std = (mean - 2 * std_dev).reshape(-1, 1)
