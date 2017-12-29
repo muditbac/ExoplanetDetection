@@ -6,9 +6,9 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 
-from config import TEST_PREDICTIONS_PATH, RESULTS_PATH
+from config import RESULTS_PATH
 from utils.model_utils import load_model
-from utils.processing_helper import load_testdata, make_dir_if_not_exists
+from utils.processing_helper import load_testdata, save_features
 from train_model import analyze_results
 from utils.python_utils import start_logging
 
@@ -32,16 +32,6 @@ def analyze_metrics(probs, target_filename):
     analyze_results(target, probs[:, 1])
 
 
-def clear_prior_probs():
-    """
-    Removes any prior probabilities present
-    """
-    make_dir_if_not_exists(TEST_PREDICTIONS_PATH)
-    files = os.listdir(TEST_PREDICTIONS_PATH)
-    for file_name in files:
-        os.remove(os.path.join(TEST_PREDICTIONS_PATH, file_name))
-
-
 def dump_results(probs, model_name, dataset_name):
     """
     Dumps the probabilities to a file
@@ -49,10 +39,7 @@ def dump_results(probs, model_name, dataset_name):
     :param model_name: Name of the model
     :param dataset_name: Name of the dataset
     """
-    result_file = os.path.join(TEST_PREDICTIONS_PATH, '{}_{}.probs'.format(model_name, dataset_name))
-    make_dir_if_not_exists(os.path.dirname(result_file))
-    with open(result_file, 'wb') as fp:
-        cPickle.dump(probs, fp)
+    save_features(probs, 'probs/%s_%s'%(dataset_name, model_name), test=True)
 
 
 def test_model(model_name, dataset_name, true_labels_path):

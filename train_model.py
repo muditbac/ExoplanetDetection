@@ -7,7 +7,7 @@ import numpy as np
 from sklearn.metrics import confusion_matrix, roc_auc_score, precision_recall_fscore_support, average_precision_score
 
 from config import RESULTS_PATH
-from utils.processing_helper import load_dataset, load_folds
+from utils.processing_helper import load_dataset, load_folds, save_features
 from utils.python_utils import start_logging
 from utils.model_utils import save_model
 
@@ -87,6 +87,7 @@ def summarize_model(model_name, dataset_name, novalidate):
             print
 
         y_complete_pred.dump(os.path.join(RESULTS_PATH, '%s_%s.npy' % (dataset_name, model_name)))
+        save_features(y_complete_pred, 'probs/%s_%s' % (dataset_name, model_name))
 
         print "Complete Summary: ",
         analyze_results(y, y_complete_pred)
