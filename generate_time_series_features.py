@@ -163,10 +163,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.test:
-        x_dataset = pd.read_csv(testing_filename)
+        dataset = pd.read_csv(testing_filename)
     else:
         dataset = pd.read_csv(raw_data_filename)
-        x_dataset = dataset.iloc[:, 1:]
+
+    x_dataset = dataset.iloc[:, 1:]
 
     print('Extracting time series features...')
     generate_time_series_feats(x_dataset, test=args.test)

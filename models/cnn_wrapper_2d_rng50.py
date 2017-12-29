@@ -20,11 +20,7 @@ from keras.wrappers.scikit_learn import KerasClassifier
 
 from hyperopt import hp
 
-org_input_len = 3197
-input_shape = [org_input_len, 1]
-new_input_len = 1500
-new_input_shape = [new_input_len, 1]
-max_slice_start_idx = org_input_len - new_input_len
+input_shape = [3197, 2]
 
 
 class KerasBatchClassifier(KerasClassifier):
@@ -66,12 +62,6 @@ class KerasBatchClassifier(KerasClassifier):
             steps_per_epoch=2*X.shape[0] // self.sk_params["batch_size"],
             **fit_args)
 
-    def predict_proba(self, X, **kwargs):
-        mid_cut = max_slice_start_idx//2
-        X = X.reshape([-1] + input_shape)
-        X = X[:, mid_cut:mid_cut+new_input_len]
-        return super(KerasBatchClassifier, self).predict_proba(X, **kwargs)
-
     @staticmethod
     def batch_generator(x_train, y_train, batch_size=32):
         """
@@ -80,8 +70,6 @@ class KerasBatchClassifier(KerasClassifier):
         half_batch = batch_size // 2
         x_batch = np.empty((batch_size, x_train.shape[1]), dtype='float32')
         y_batch = np.empty((batch_size, y_train.shape[1]), dtype='float32')
-
-        x_batch_new = np.empty((batch_size, new_input_len), dtype='float32')
 
         yes_idx = np.where(y_train[:, 0] == 1.)[0]
         non_idx = np.where(y_train[:, 0] == 0.)[0]
@@ -96,19 +84,19 @@ class KerasBatchClassifier(KerasClassifier):
             y_batch[half_batch:] = y_train[non_idx[half_batch:batch_size]]
 
             for i in range(batch_size):
-                rand_start_idx = np.random.randint(max_slice_start_idx)
-                x_batch_new[i] = x_batch[i, rand_start_idx:rand_start_idx+new_input_len]
+                sz = np.random.randint(x_batch.shape[1])
+                x_batch[i] = np.roll(x_batch[i], sz, axis=0)
 
-            yield x_batch_new, y_batch
+            yield x_batch, y_batch
 
     @property
     def history(self):
         return self.__history
 
 
-def create_model(dropout1=0.5, dropout2=0.25, lr=50e-5):
+def create_model(learning_rate=50e-5, dropout_1=0.5, dropout_2=0.25):
     model = Sequential()
-    model.add(Reshape(new_input_shape, input_shape=(np.prod(new_input_shape),)))
+    model.add(Reshape(input_shape, input_shape=(np.prod(input_shape),)))
     model.add(Conv1D(filters=8, kernel_size=11, activation='relu'))
     model.add(MaxPool1D(strides=4))
     model.add(BatchNormalization())
@@ -121,19 +109,19 @@ def create_model(dropout1=0.5, dropout2=0.25, lr=50e-5):
     model.add(Conv1D(filters=64, kernel_size=11, activation='relu'))
     model.add(MaxPool1D(strides=4))
     model.add(Flatten())
-    model.add(Dropout(dropout1))
+    model.add(Dropout(dropout_1))
     model.add(Dense(64, activation='relu'))
-    model.add(Dropout(dropout2))
+    model.add(Dropout(dropout_2))
     model.add(Dense(64, activation='relu'))
     model.add(Dense(1, activation='sigmoid'))
-    model.compile(optimizer=Adam(lr, decay=2e-4), loss='binary_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer=Adam(learning_rate, decay=4e-4), loss='binary_crossentropy', metrics=['accuracy'])
     return model
 
 
-model = KerasBatchClassifier(build_fn=create_model, epochs=40, batch_size=32, verbose=2)
+model = KerasBatchClassifier(build_fn=create_model, epochs=40, batch_size=32, verbose=2, learning_rate=0.001, dropout_1=0.75, dropout_2=0.5)
 
 params_space = {
-    'lr': hp.loguniform('lr', -10, -4),
-    'dropout1': hp.quniform('dropout1', 0.25, .75, 0.25),
-    'dropout2': hp.quniform('dropout2', 0.25, .75, 0.25),
+    'learning_rate': hp.loguniform('learning_rate', -10, -4),
+    'dropout_1': hp.quniform('dropout_1', 0.25, .75, 0.25),
+    'dropout_2': hp.quniform('dropout_2', 0.25, .75, 0.25),
 }

@@ -19,6 +19,7 @@ params_space = {
     'xgb__n_estimators': quniform_int('n_estimators', 1000, 10000, 50),
     'xgb__learning_rate': hp.loguniform('learning_rate', np.log(0.0001), np.log(0.5)) - 0.0001,
     'xgb__gamma': hp.loguniform('gamma', np.log(0.0001), np.log(5)) - 0.0001,
-    'xgb__colsample_bytree': hp.quniform('colsample_bytree', 0.5, 1, 0.05)
+    'xgb__colsample_bytree': hp.quniform('colsample_bytree', 0.5, 1, 0.05),
+    'xgb__seed': random_seed
 }
 

@@ -1,7 +1,7 @@
 # Configuration of the system
 
 raw_data_filename = 'data/ExoTrain.csv'
-testing_filename = 'data/lTest.csv'
+testing_filename = 'data/eTest.csv'
 train_stats_filename = 'data/train_stats.npy'
 
 # Folder paths
