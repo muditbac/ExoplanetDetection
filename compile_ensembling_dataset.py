@@ -23,14 +23,18 @@ if __name__ == '__main__':
 
     struct = {
         'features': [
-            ('probs/raw_normalized_gaussian50_dataset_cnn_wrapper_2d_rng50', ReshapeTransform()),
-            ('probs/raw_normalized_smoothed_dataset_cnn_window_slicing_2d_rns', ReshapeTransform()),
-            # ('probs/fft_smoothed10_dataset_xgb_fft10', ReshapeTransform()),
-            ('probs/fft_smoothed10_dataset_edited_nn_pca_xgb_fft10', ReshapeTransform()),
+            ('probs/fft_smoothed10_ar100_dataset_edited_nn_xgb_fft10ar100', ReshapeTransform()),
+            ('probs/fft_smoothed10_ar100_dataset_rfecv_xgb', ReshapeTransform()),
+            ('probs/fft_smoothed10_dataset_cnn_wrapper_1d_half_no_rolling_fft10', ReshapeTransform()),
             ('probs/fft_smoothed10_dataset_cnn_wrapper_fft', ReshapeTransform()),
-            # ('probs/fft_smoothed10_dataset_cnn_wrapper_1d_half_no_rolling_fft10', ReshapeTransform()),
-            ('probs/raw_normalized_gaussian50_dataset_xgb', ReshapeTransform()),
-            ('probs/fft_smoothed10_ar100_dataset_edited_nn_xgb_fft10ar100', ReshapeTransform())
+            ('probs/fft_smoothed10_dataset_edited_nn_pca_xgb_fft10', ReshapeTransform()),
+            ('probs/fft_smoothed10_dataset_xgb_fft10', ReshapeTransform()),
+            ('probs/raw_normalized_gaussian50_dataset_cnn_wrapper_2d_rng50', ReshapeTransform()),
+            ('probs/raw_normalized_gaussian50_dataset_cnn_wrapper_2d_window_slicing_2500_rng50', ReshapeTransform()),
+            ('probs/raw_normalized_gaussian50_dataset_xgb_rng50', ReshapeTransform()),
+            ('probs/raw_normalized_smoothed_dataset_cnn_wrapper_2d_rns', ReshapeTransform()),
+            ('probs/raw_normalized_smoothed_dataset_cnn_window_slicing_2d_rns', ReshapeTransform()),
+            ('probs/raw_time_series_peak_dataset_rfecv_xgb', ReshapeTransform()),
         ],
         'target': ('labels', SimpleTransform())
     }
