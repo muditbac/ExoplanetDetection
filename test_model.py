@@ -51,7 +51,7 @@ def test_model(model_name, dataset_name, true_labels_path):
     """
     model = load_model(dataset_name, model_name)
     X = load_testdata(dataset_name)
-    probs = model.predict_proba(X)
+    probs = model.predict_proba(X)[:, 1]
     print 'Saved the predicted probabilities'
     dump_results(probs, model_name, dataset_name)
     if true_labels_path:
