@@ -65,45 +65,37 @@ def preprocess_data(raw_data, is_test=False):
     """
     if isinstance(raw_data, pd.DataFrame):
         raw_data = raw_data.values
-    if not is_test:
-        labels = raw_data[:, 0] - 1
-        features = raw_data[:, 1:]
-    else:
-        features = raw_data
+
+    labels = raw_data[:, 0] - 1
+    features = raw_data[:, 1:]
     mean = features.mean(axis=1).reshape(-1, 1)
     std = features.std(axis=1).reshape(-1, 1)
     features = (features - mean) / std
 
-    if not is_test:
-        return features, labels.astype('int')
-    else:
-        return features
+    return features, labels.astype('int')
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--test', help="'train' or 'test' data", action='store_true')
     args = parser.parse_args()
+
     if args.test:
         dataset = pd.read_csv(testing_filename)
-        dataset_x = dataset
     else:
         dataset = pd.read_csv(raw_data_filename)
-        dataset_x = dataset.iloc[:, 1:]
 
     print("Preprocessing data...")
 
     print(" - Removing outlier")
-    dataset_x = remove_outlier_parallel(dataset_x.values)
-    dataset = np.concatenate([dataset.values[:, 0].reshape(-1, 1), dataset_x], axis=1)
-    dataset_x = pd.DataFrame(dataset_x)
+    dataset.iloc[:, 1:] = remove_outlier_parallel(dataset.values[:, 1:])
+    dataset_x = dataset.iloc[:, 1:]
 
     print(" - Normalizing data")
+    x, y = preprocess_data(dataset)
     if not args.test:
-        x, y = preprocess_data(dataset)
+        print(" - Saving labels")
         y.dump(os.path.join(FEATURES_PATH, 'labels.npy'))
-    else:
-        x = preprocess_data(dataset, True)
 
     print(" - Smoothing features")
     x_smoothed_uniform = uniform_filter1d(x, axis=1, size=200)

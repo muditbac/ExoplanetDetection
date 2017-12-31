@@ -66,6 +66,12 @@ class KerasBatchClassifier(KerasClassifier):
             steps_per_epoch=2*X.shape[0] // self.sk_params["batch_size"],
             **fit_args)
 
+    def predict_proba(self, X, **kwargs):
+        mid_cut = max_slice_start_idx//2
+        X = X.reshape([-1] + input_shape)
+        X = X[:, mid_cut:mid_cut+new_input_len]
+        return super(KerasBatchClassifier, self).predict_proba(X, **kwargs)
+
     @staticmethod
     def batch_generator(x_train, y_train, batch_size=32):
         """
