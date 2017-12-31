@@ -29,7 +29,7 @@ def analyze_metrics(probs, target_filename):
     target = target[:, 0] - 1
     target = target.astype('int')
     print 'Analyzing other metrics for the predictions...'
-    analyze_results(target, probs[:, 1])
+    analyze_results(target, probs)
 
 
 def dump_results(probs, model_name, dataset_name):
