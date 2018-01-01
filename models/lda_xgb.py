@@ -9,7 +9,7 @@ from utils.python_utils import quniform_int
 
 steps = [
     ('lda', LinearDiscriminantAnalysis(n_components=55)),
-    ('xgb', xgb.XGBClassifier(n_estimators=5900, max_depth=11, min_child_weight=4, subsample=0.932626370862, gamma=0.7, colsample_bytree=0.85, learning_rate=0.125, silent=True, nthread=3, seed=random_seed))
+    ('xgb', xgb.XGBClassifier(n_estimators=5900, max_depth=11, min_child_weight=4, subsample=0.932626370862, gamma=0.7, learning_rate=0.125, silent=True, nthread=3, seed=random_seed))
 
 ]
 model = Pipeline(steps=steps)
