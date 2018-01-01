@@ -29,7 +29,7 @@ def analyze_metrics(probs, target_filename):
     target = target[:, 0] - 1
     target = target.astype('int')
     print 'Analyzing other metrics for the predictions...'
-    analyze_results(target, probs[:, 1])
+    analyze_results(target, probs)
 
 
 def dump_results(probs, model_name, dataset_name):
@@ -51,7 +51,7 @@ def test_model(model_name, dataset_name, true_labels_path):
     """
     model = load_model(dataset_name, model_name)
     X = load_testdata(dataset_name)
-    probs = model.predict_proba(X)
+    probs = model.predict_proba(X)[:, 1]
     print 'Saved the predicted probabilities'
     dump_results(probs, model_name, dataset_name)
     if true_labels_path:
