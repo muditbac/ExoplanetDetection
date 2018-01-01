@@ -35,6 +35,7 @@ if __name__ == '__main__':
             ('probs/raw_normalized_smoothed_dataset_cnn_wrapper_2d_rns', ReshapeTransform()),
             ('probs/raw_normalized_smoothed_dataset_cnn_window_slicing_2d_rns', ReshapeTransform()),
             ('probs/raw_time_series_peak_dataset_rfecv_xgb', ReshapeTransform()),
+            ('probs/wavelet_db2_b_dataset_xgb', ReshapeTransform())
         ],
         'target': ('labels', SimpleTransform())
     }
