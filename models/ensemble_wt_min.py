@@ -25,7 +25,7 @@ class AvgModel(BaseEstimator):
 
 model = AvgModel()
 
-nmodels = 5
+nmodels = 12
 
 params_space = {
     'weights': [hp.quniform('modelwt%d' % i, 0, 2, 0.05) for i in xrange(nmodels)],

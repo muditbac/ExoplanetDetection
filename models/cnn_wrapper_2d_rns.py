@@ -62,13 +62,17 @@ class KerasBatchClassifier(KerasClassifier):
             steps_per_epoch=2*X.shape[0] // self.sk_params["batch_size"],
             **fit_args)
 
+    def predict_proba(self, X, **kwargs):
+        X = X.reshape([-1] + input_shape)
+        return super(KerasBatchClassifier, self).predict_proba(X, **kwargs)
+
     @staticmethod
     def batch_generator(x_train, y_train, batch_size=32):
         """
         Gives equal number of positive and negative samples, and rotates them randomly in time
         """
         half_batch = batch_size // 2
-        x_batch = np.empty((batch_size, x_train.shape[1]), dtype='float32')
+        x_batch = np.empty([batch_size]+input_shape, dtype='float32')
         y_batch = np.empty((batch_size, y_train.shape[1]), dtype='float32')
 
         yes_idx = np.where(y_train[:, 0] == 1.)[0]
@@ -78,8 +82,8 @@ class KerasBatchClassifier(KerasClassifier):
             np.random.shuffle(yes_idx)
             np.random.shuffle(non_idx)
 
-            x_batch[:half_batch] = x_train[yes_idx[:half_batch]]
-            x_batch[half_batch:] = x_train[non_idx[half_batch:batch_size]]
+            x_batch[:half_batch] = np.reshape(x_train[yes_idx[:half_batch]], [-1]+input_shape)
+            x_batch[half_batch:] = np.reshape(x_train[non_idx[half_batch:batch_size]], [-1]+input_shape)
             y_batch[:half_batch] = y_train[yes_idx[:half_batch]]
             y_batch[half_batch:] = y_train[non_idx[half_batch:batch_size]]
 
@@ -96,8 +100,7 @@ class KerasBatchClassifier(KerasClassifier):
 
 def create_model(learning_rate=50e-5, dropout_1=0.5, dropout_2=0.25):
     model = Sequential()
-    model.add(Reshape(input_shape, input_shape=(np.prod(input_shape),)))
-    model.add(Conv1D(filters=8, kernel_size=11, activation='relu'))
+    model.add(Conv1D(filters=8, kernel_size=11, activation='relu', input_shape=input_shape))
     model.add(MaxPool1D(strides=4))
     model.add(BatchNormalization())
     model.add(Conv1D(filters=16, kernel_size=11, activation='relu'))
@@ -118,7 +121,7 @@ def create_model(learning_rate=50e-5, dropout_1=0.5, dropout_2=0.25):
     return model
 
 
-model = KerasBatchClassifier(build_fn=create_model, epochs=40, batch_size=32, verbose=2, learning_rate=0.001, dropout_1=0.75, dropout_2=0.5)
+model = KerasBatchClassifier(build_fn=create_model, epochs=40, batch_size=32, verbose=2, learning_rate=0.00364126596462, dropout_1=0.5, dropout_2=0.75)
 
 params_space = {
     'learning_rate': hp.loguniform('learning_rate', -10, -4),

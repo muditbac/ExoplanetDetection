@@ -17,7 +17,7 @@ class AvgModel(BaseEstimator):
 
     def predict_proba(self, X):
         X = np.power(X, self.powers)
-        y = np.max(X * self.weights, axis=1)
+        y = np.mean(X * self.weights, axis=1)
         y = np.minimum(y, 1)
         y = np.maximum(y, 0)
         return np.vstack([1 - y, y]).T
