@@ -31,4 +31,3 @@ params_space = {
     'weights': [hp.quniform('modelwt%d' % i, 0, 2, 0.05) for i in xrange(nmodels)],
     'powers': [hp.qloguniform('modelpow%d' % i, np.log(0.25), np.log(2), 0.01) for i in xrange(nmodels)]
 }
-

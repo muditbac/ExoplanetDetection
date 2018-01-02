@@ -21,3 +21,28 @@ if __name__ == '__main__':
         'target': ('labels', SimpleTransform())
     }
     generate_dataset(struct, 'wavelet_db2_b_dataset', args.test)
+
+    struct = {
+        'features': [
+            ('cwt_features_scale2_real', SimpleTransform()),
+        ],
+        'target': ('labels', SimpleTransform())
+    }
+    generate_dataset(struct, 'cwt_features_scale2_real_dataset', args.test)
+
+    struct = {
+        'features': [
+            ('cwt_features_scale2_imag', SimpleTransform()),
+        ],
+        'target': ('labels', SimpleTransform())
+    }
+    generate_dataset(struct, 'cwt_features_scale2_imag_dataset', args.test)
+
+    struct = {
+        'features': [
+            ('cwt_features_scale2_real', SimpleTransform()),
+            ('cwt_features_scale2_imag', SimpleTransform()),
+        ],
+        'target': ('labels', SimpleTransform())
+    }
+    generate_dataset(struct, 'cwt_features_scale2_dataset', args.test)
