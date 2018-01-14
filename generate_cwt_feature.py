@@ -8,8 +8,8 @@ from config import FEATURES_PATH
 from utils.processing_helper import parallelize_row, save_features
 
 
-def generate_cwt_features(x_data):
-    return np.array([cwt(series, 2, 'cmor')[0].flatten() for series in x_data])
+def generate_cwt_features(x_data, scale = 2):
+    return np.array([cwt(series, scale, 'cmor')[0].flatten() for series in x_data])
 
 
 def generate_cwt_features_parallel(data, n_jobs=-1):
@@ -30,3 +30,11 @@ if __name__ == '__main__':
     cwt_scale_2 = generate_cwt_features(raw_mean_std_normalized)
     save_features(cwt_scale_2.real, 'cwt_features_scale2_real', args.test)
     save_features(cwt_scale_2.imag, 'cwt_features_scale2_imag', args.test)
+
+    cwt_scale = generate_cwt_features(raw_mean_std_normalized, 10)
+    save_features(cwt_scale.real, 'cwt_features_scale_real', args.test)
+    save_features(cwt_scale.imag, 'cwt_features_scale_imag', args.test)
+
+    cwt_scale = generate_cwt_features(raw_mean_std_normalized, 80)
+    save_features(cwt_scale.real, 'cwt_features_scale80_real', args.test)
+    save_features(cwt_scale.imag, 'cwt_features_scale80_imag', args.test)

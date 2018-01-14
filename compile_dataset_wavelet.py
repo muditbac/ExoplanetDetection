@@ -46,3 +46,55 @@ if __name__ == '__main__':
         'target': ('labels', SimpleTransform())
     }
     generate_dataset(struct, 'cwt_features_scale2_dataset', args.test)
+
+
+    struct = {
+        'features': [
+            ('cwt_features_scale_real', SimpleTransform()),
+        ],
+        'target': ('labels', SimpleTransform())
+    }
+    generate_dataset(struct, 'cwt_features_scale_real_dataset', args.test)
+
+    struct = {
+        'features': [
+            ('cwt_features_scale_imag', SimpleTransform()),
+        ],
+        'target': ('labels', SimpleTransform())
+    }
+    generate_dataset(struct, 'cwt_features_scale_imag_dataset', args.test)
+
+    struct = {
+        'features': [
+            ('cwt_features_scale_real', SimpleTransform()),
+            ('cwt_features_scale_imag', SimpleTransform()),
+        ],
+        'target': ('labels', SimpleTransform())
+    }
+    generate_dataset(struct, 'cwt_features_scale_dataset', args.test)
+
+
+    struct = {
+        'features': [
+            ('cwt_features_scale80_real', SimpleTransform()),
+        ],
+        'target': ('labels', SimpleTransform())
+    }
+    generate_dataset(struct, 'cwt_features_scale80_real_dataset', args.test)
+
+    struct = {
+        'features': [
+            ('cwt_features_scale80_imag', SimpleTransform()),
+        ],
+        'target': ('labels', SimpleTransform())
+    }
+    generate_dataset(struct, 'cwt_features_scale80_imag_dataset', args.test)
+
+    struct = {
+        'features': [
+            ('cwt_features_scale80_real', SimpleTransform()),
+            ('cwt_features_scale80_imag', SimpleTransform()),
+        ],
+        'target': ('labels', SimpleTransform())
+    }
+    generate_dataset(struct, 'cwt_features_scale80_dataset', args.test)
