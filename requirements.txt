@@ -11,3 +11,6 @@ h5py
 PyAstronomy
 statsmodels
 peakutils
+pywt
+pyyawt
+tsfresh
