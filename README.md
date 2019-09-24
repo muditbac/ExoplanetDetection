@@ -55,6 +55,28 @@ cross-validation predictions. To achieve this, we used the hyperopt package in P
 values of the parameters based on Trees of Parzen Estimators. We have tuned all our models for
 around 800 hours of 16-core Intel Xeon CPU.
 
+The table represents different models with their datasets along with their summaries. 
+
+| Dataset                      |  Model               | F Score | Skill Score | AUPRC   | AUC     | 
+|------------------------------|----------------------|---------|-------------|---------|---------| 
+| Fourier Transform            |  PCA + XGB           |  0.5970 |  0.8212     |  0.4122 |  0.9610 | 
+| Gaussian Detrended           |  PCA + XGB           |  0.6250 |  0.5722     |  0.4854 |  0.8228 | 
+| Fourier Transform            |  UndSamp + PCA + XGB |  0.6557 |  0.7698     |  0.5077 |  0.9497 | 
+| Fourier Transform            |  CNN                 |  0.6667 |  0.8513     |  0.5993 |  0.9628 | 
+| Fourier Transform            |  PCA + XGB- Tune     |  0.6957 |  0.7568     |  0.4066 |  0.9387 | 
+| Fourier Transform + AR Coeff |  RFE + XGB           |  0.7273 |  0.8615     |  0.6257 |  0.9796 | 
+| Gaussian Detrended           |  UndSamp + PCA + XGB |  0.7273 |  0.7464     |  0.5795 |  0.9103 | 
+| Fourier Transform            |  XGB                 |  0.7761 |  0.9190     |  0.6299 |  0.9899 | 
+| Normalized with Smoothed fit |  CNN                 |  0.7879 |  0.9287     |  0.7937 |  0.9962 | 
+| Fourier Transform + AR Coeff |  XGB                 |  0.8000 |  0.8421     |  0.5845 |  0.9818 | 
+| Normalized with Smoothed fit |  CNN-Tune            |  0.8358 |  0.9353     |  0.8005 |  0.9873 | 
+| Time Series Features         |  RFE + XGB           |  0.8525 |  0.8230     |  0.8230 |  0.9780 | 
+| Normalized with Gaussian fit |  CNN                 |  0.8571 |  0.8174     |  0.8129 |  0.9816 | 
+| Morlet Wavelet Transform     |  CNN                 |  0.8615 |  0.9595     |  0.8328 |  0.9980 | 
+| Time Series + Peak Features  |  RFE + XGB           |  0.8667 |  0.8424     |  0.8297 |  0.9859 | 
+| Normalized with Gaussian fit |  XGB                 |  0.9206 |  0.8958     |  0.8563 |  0.9466 | 
+| Discrete Wavelet Transform   |  XGB                 |  0.9697 |  0.9694     |  0.9754 |  0.9991 | 
+
 # Novelty
 
 Following are the novelties in our approach:
